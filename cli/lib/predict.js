@@ -100,6 +100,7 @@ async function predict(seedText, opts = {}) {
             await new Promise(r => setTimeout(r, 15000));
             try {
                 const pStatus = await request('POST', '/api/simulation/prepare/status', {
+                    task_id: prepData.task_id,
                     simulation_id: simId,
                 });
                 const ps = pStatus.data || pStatus;
