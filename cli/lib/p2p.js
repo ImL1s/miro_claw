@@ -41,11 +41,11 @@ async function peerRequest(peer, method, path, body) {
 
 /**
  * 向所有 peers 廣播推演種子
- * 各 peer 收到後自動觸發本地推演
+ * 目前後端只記錄種子，不自動觸發推演（Phase 3.5 TODO）
  *
  * @param {string} topic - 推演主題
  * @param {object} config - { rounds, platform }
- * @returns {Promise<Array<{peer, success, simId}>>}
+ * @returns {Promise<Array<{peer, success}>>}
  */
 async function broadcastSeed(topic, config = {}) {
     const peers = getActivePeers();
