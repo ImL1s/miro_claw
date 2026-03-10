@@ -14,6 +14,7 @@
 const { request } = require('../lib/api.js');
 const docker = require('../lib/docker.js');
 const { predict } = require('../lib/predict.js');
+const { launchCanvas } = require('../lib/canvas.js');
 
 const args = process.argv.slice(2);
 const cmd = args[0];
@@ -31,6 +32,10 @@ Usage:
   mirofish predict "topic"          Full prediction pipeline (auto-starts backend)
     --rounds=20                     Number of simulation rounds (default: 20)
     --platform=parallel             Platform: twitter|reddit|parallel (default: parallel)
+    --canvas                        Auto-open Canvas Dashboard after completion
+
+  mirofish canvas <sim_id>          Open interactive visual Dashboard
+    --port=18790                    Dashboard server port (default: 18790)
 
   mirofish projects                 List all projects
   mirofish status <sim_id>          Check simulation status
@@ -84,6 +89,21 @@ async function main() {
                 return await predict(topic, {
                     rounds: flags.rounds ? parseInt(flags.rounds) : 20,
                     platform: flags.platform || 'parallel',
+                    canvas: args.includes('--canvas'),
+                    canvasPort: flags.port ? parseInt(flags.port) : 18790,
+                });
+            }
+
+            case 'canvas': {
+                const simId = sub;
+                if (!simId) {
+                    console.error('Usage: mirofish canvas <simulation_id>');
+                    process.exit(1);
+                }
+                await docker.ensureRunning();
+                const flags = parseFlags(args.slice(2));
+                return await launchCanvas(simId, {
+                    port: flags.port ? parseInt(flags.port) : 18790,
                 });
             }
 

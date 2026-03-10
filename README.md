@@ -73,7 +73,7 @@ miro_claw/
 ├── skills/               # OpenClaw skill
 │   └── mirofish-predict/
 │       └── SKILL.md
-├── MiroFish/             # git submodule (上游 repo)
+├── MiroFish/             # 獨立 clone (被 .gitignore 排除)
 └── .env                  # 環境變數
 ```
 

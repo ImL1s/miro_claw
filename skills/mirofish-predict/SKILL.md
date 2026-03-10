@@ -77,9 +77,32 @@ mirofish chat <sim_id> "哪些 KOL 的觀點最極端？"
 mirofish interview <sim_id> 0 "你對 BTC 破 15 萬有什麼看法？"
 ```
 
+## 視覺化 Dashboard（P2）
+
+推演完成後，可開啟互動式 Canvas Dashboard 查看結果：
+
+```bash
+mirofish canvas <sim_id>
+# → 自動開啟瀏覽器，顯示：
+#   - 報告總覽卡片（標題、摘要、統計）
+#   - 章節導航（側邊欄）
+#   - 關鍵事件高亮（看多/看空標記）
+#   - Agent 觀點面板
+#   - 互動追問框（直接向 Report Agent 提問）
+```
+
+也可以在推演時加上 `--canvas` 自動開啟：
+
+```bash
+mirofish predict "主題" --canvas
+```
+
+推演完成後會自動發送系統通知（macOS/Linux/Windows）。
+
 ## 注意事項
 
 - 推演消耗大量 LLM token（55 Agent × N 輪），本地模型可節省費用
 - `--rounds` 建議 10-20 輪先試，效果好再加到 40
 - `--platform` 可選 `twitter`、`reddit`、`parallel`（推薦 parallel）
+- `--canvas` 推演完成後自動啟動視覺化 Dashboard
 - 建議 LLM ≥ 14B 參數

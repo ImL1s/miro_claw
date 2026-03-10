@@ -6,10 +6,17 @@ This file provides context and instructions for AI agents working in this reposi
 
 MiroClaw is an integration project combining [MiroFish](https://github.com/666ghj/MiroFish) (a multi-agent simulation engine featuring 55 AI Agents) and OpenClaw. It packages the swarm intelligence deduction engine into a Node.js CLI tool (`mirofish-cli`) and an OpenClaw skill.
 
+### Vision
+
+The ultimate vision is a **Decentralized Swarm Intelligence Prediction Protocol**:
+*   Every OpenClaw node acts as both an AI Agent and an optional blockchain validator.
+*   Multiple nodes collaborate to run the same multi-agent simulation (Distributed Simulation).
+*   On-chain attestation (Cosmos SDK) ensures prediction immutability, and a reputation system highlights top predictors without requiring a gambling/betting economic model.
+
 The core objective is to create a decentralized swarm intelligence prediction protocol. The architecture consists of three layers:
-1. **Deduction Layer**: MiroFish Engine (Simulating a social platform like Twitter/Reddit)
-2. **Agent Layer**: OpenClaw Gateway
-3. **Consensus Layer**: Cosmos SDK (Optional)
+1. **Deduction Layer**: MiroFish Engine (GraphRAG + OASIS multi-agent simulation + Report AI)
+2. **Agent Layer**: OpenClaw Gateway Network (P2P communication, Task dispatch)
+3. **Consensus Layer**: Cosmos SDK AppChain (Optional - for on-chain attestation & reputation)
 
 The project structure is divided into:
 - `MiroFish/`: The core application as a submodule (Python Flask Backend on port 5001, Vue 3 + Vite Frontend on port 3000).
@@ -45,6 +52,11 @@ The core application lives in the `MiroFish` directory.
 
 ## Development Conventions
 
+*   **Coding Style**:
+    *   **Python**: Use 4-space indentation, snake_case module names, and include docstrings/type-hints.
+    *   **Vue/JS**: Use 2-space indentation, single quotes, and follow a semicolon-light formatting style. Vue components in PascalCase (e.g., `Step3Simulation.vue`).
+*   **Commit Guidelines**: Use Conventional Commits (`type(scope): summary`). Examples: `feat(graph): ...`, `fix(report_agent): ...`. Include test evidence in PRs.
+*   **Testing**: Use `pytest` for backend changes (`test_*.py`). For UI changes, verify manually and provide screenshots.
 *   **Python Dependency Management**: Use `uv` (not `pip`) for managing Python packages in `MiroFish/backend`. Virtual environments are located at `backend/.venv`.
 *   **Backend Architecture**: The Python backend uses Flask with a factory pattern (`app/__init__.py -> create_app()`) and Blueprints (`graph`, `simulation`, `report`).
 *   **Frontend Architecture**: The frontend is a Vue 3 SPA built with Vite. The dev server proxies `/api` requests to `localhost:5001`.
