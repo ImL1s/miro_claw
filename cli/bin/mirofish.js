@@ -252,12 +252,18 @@ async function main() {
                 if (peerResults.length === 0) {
                     console.log('\n⚠️  No results from peers. Run predictions first with --p2p');
                 } else {
-                    console.log(`\n📊 Collected ${peerResults.length} result(s) from peers:`);
-                    for (const r of peerResults) {
-                        console.log(`  • ${r.node}: sim=${r.simulation_id || '?'}`);
+                    const { mergeReports, formatMetaReport } = require('../lib/meta-report.js');
+                    const meta = mergeReports(peerResults);
+                    if (meta.nodeCount === 0) {
+                        console.log('\n⚠️  No completed reports from peers yet.');
+                    } else {
+                        const md = formatMetaReport(meta);
+                        console.log(md);
+                        const fs = require('fs');
+                        const metaFile = path.join(require('os').tmpdir(), `mirofish_meta_${Date.now()}.md`);
+                        fs.writeFileSync(metaFile, md);
+                        console.log(`\n💾 Meta-report saved to: ${metaFile}`);
                     }
-                    // TODO: meta-report 合併分析（Phase 3.2）
-                    console.log('\n📝 Meta-report generation coming in Phase 3.2');
                 }
                 return;
             }
