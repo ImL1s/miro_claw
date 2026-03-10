@@ -1,0 +1,28 @@
+{
+    "name": "mirofish-cli",
+    "version": "0.1.0",
+    "description": "MiroFish 群體智能推演引擎 CLI — 55 AI Agents 模擬社交平台推演未來趨勢",
+    "bin": {
+        "mirofish": "./bin/mirofish.js"
+    },
+    "files": [
+        "bin/",
+        "lib/"
+    ],
+    "keywords": [
+        "mirofish",
+        "ai",
+        "simulation",
+        "multi-agent",
+        "prediction",
+        "openclaw"
+    ],
+    "license": "MIT",
+    "engines": {
+        "node": ">=18.0.0"
+    },
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/666ghj/MiroFish"
+    }
+}
