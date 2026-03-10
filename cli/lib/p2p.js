@@ -11,6 +11,9 @@
  */
 
 const { getActivePeers, checkPeerHealth } = require('./peer-config.js');
+const os = require('os');
+
+const HOSTNAME = os.hostname();
 
 /**
  * 向 peer 發送 HTTP request
@@ -52,6 +55,7 @@ async function broadcastSeed(topic, config = {}) {
     }
 
     console.log(`\n📡 Broadcasting seed to ${peers.length} peer(s)...`);
+    console.log('   ℹ️  Peers will queue the seed. Auto-prediction not yet enabled.');
 
     const results = await Promise.allSettled(
         peers.map(async (peer) => {
@@ -61,20 +65,20 @@ async function broadcastSeed(topic, config = {}) {
                 return { peer, success: false, error: 'offline' };
             }
 
-            // 觸發 peer 的推演
-            // peer 需要有 /api/p2p/predict endpoint（Phase 3.1 新增）
+            // 通知 peer 記錄種子
+            // 注意：目前後端只記錄，不自動觸發推演（需要手動在 peer 上跑）
             const res = await peerRequest(peer, 'POST', '/api/p2p/predict', {
                 topic,
                 rounds: config.rounds || 20,
                 platform: config.platform || 'parallel',
-                origin_node: require('os').hostname(),
+                origin_node: HOSTNAME,
             });
 
             if (res && res.success) {
-                console.log(`   ✅ ${peer.id}: started (sim=${res.data?.simulation_id || '?'})`);
-                return { peer, success: true, simId: res.data?.simulation_id };
+                console.log(`   📋 ${peer.id}: seed queued`);
+                return { peer, success: true };
             } else {
-                console.log(`   ❌ ${peer.id}: failed to start`);
+                console.log(`   ❌ ${peer.id}: failed`);
                 return { peer, success: false, error: res?.error || 'unknown' };
             }
         })
@@ -99,7 +103,7 @@ async function broadcastResult(topic, simId, reportData) {
     const result = {
         topic,
         simulation_id: simId,
-        origin_node: require('os').hostname(),
+        origin_node: HOSTNAME,
         report: reportData,
         timestamp: Date.now(),
     };

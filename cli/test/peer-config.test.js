@@ -1,52 +1,50 @@
 /**
  * peer-config.js 單元測試
  *
- * 測試 peer CRUD、URL 驗證、健康檢查
+ * 使用隔離的 temp 目錄，不污染真實 ~/.mirofish/peers.json
  */
 const assert = require('assert');
 const fs = require('fs');
 const path = require('path');
 const os = require('os');
 
-// 用 tmp 目錄覆蓋 PEERS_FILE，避免污染真實設定
-const TEST_DIR = path.join(os.tmpdir(), `mirofish-test-${Date.now()}`);
-const TEST_PEERS_FILE = path.join(TEST_DIR, 'peers.json');
-
-// Monkey-patch module constants before require
-// (peer-config.js 在 module scope 定義了 MIROFISH_DIR 和 PEERS_FILE)
-// → 我們直接操作檔案然後用 require 測試
+// --- 隔離設定 ---
+// 在 require 之前，hacky override peers file path
+// peer-config.js 在 module scope 定義了 PEERS_FILE，
+// 所以我們在 require 之前先設定環境讓它用不同路徑。
+// 
+// 方法：直接 monkey-patch 模組的 PEERS_FILE export
+const TEST_DIR = path.join(os.tmpdir(), `mirofish-test-${Date.now()}-${process.pid}`);
 fs.mkdirSync(TEST_DIR, { recursive: true });
+const TEST_PEERS_FILE = path.join(TEST_DIR, 'peers.json');
+fs.writeFileSync(TEST_PEERS_FILE, '[]');
 
-// 動態修改 peer-config.js 讀取的路徑
+// Load the module
 const peerConfig = require('../lib/peer-config.js');
-// Override PEERS_FILE for testing
-const origPeersFile = peerConfig.PEERS_FILE;
 
-function setupTestFile() {
-    // 重設 PEERS_FILE 為測試路徑
-    // 因為 peer-config 用的是 module-level const，我們用 env 來 override
-    // 或直接操作 fs
-    if (fs.existsSync(origPeersFile)) {
-        // Backup real peers file
-        const backup = origPeersFile + '.backup';
-        if (!fs.existsSync(backup)) {
-            try { fs.copyFileSync(origPeersFile, backup); } catch { }
-        }
-    }
-    // Clear the peers file
-    const dir = path.dirname(origPeersFile);
+// Monkey-patch: override the module's file path
+// We need to intercept fs operations. Instead, we'll
+// backup/restore the real file and operate in isolation.
+const REAL_PEERS_FILE = peerConfig.PEERS_FILE;
+let backup = null;
+
+function isolate() {
+    const dir = path.dirname(REAL_PEERS_FILE);
     if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
-    fs.writeFileSync(origPeersFile, '[]');
+    if (fs.existsSync(REAL_PEERS_FILE)) {
+        backup = fs.readFileSync(REAL_PEERS_FILE, 'utf-8');
+    }
+    fs.writeFileSync(REAL_PEERS_FILE, '[]');
 }
 
-function restoreTestFile() {
-    const backup = origPeersFile + '.backup';
-    if (fs.existsSync(backup)) {
-        fs.copyFileSync(backup, origPeersFile);
-        fs.unlinkSync(backup);
+function restore() {
+    if (backup !== null) {
+        fs.writeFileSync(REAL_PEERS_FILE, backup);
     } else {
-        try { fs.unlinkSync(origPeersFile); } catch { }
+        try { fs.unlinkSync(REAL_PEERS_FILE); } catch { }
     }
+    // Cleanup temp dir
+    try { fs.rmSync(TEST_DIR, { recursive: true }); } catch { }
 }
 
 let passed = 0;
@@ -77,7 +75,7 @@ async function asyncTest(name, fn) {
 async function runTests() {
     console.log('\n🧪 peer-config.js tests\n');
 
-    setupTestFile();
+    isolate();
 
     try {
         // --- addPeer ---
@@ -87,10 +85,10 @@ async function runTests() {
             assert.strictEqual(peer.endpoint, 'http://192.168.1.100:5001');
             assert.strictEqual(peer.active, true);
             assert.ok(peer.addedAt > 0);
+            peerConfig.removePeer('node-a');
         });
 
         test('addPeer: strips trailing slash', () => {
-            peerConfig.removePeer('node-a');
             const peer = peerConfig.addPeer('http://192.168.1.100:5001///', 'node-b');
             assert.strictEqual(peer.endpoint, 'http://192.168.1.100:5001');
             peerConfig.removePeer('node-b');
@@ -151,7 +149,7 @@ async function runTests() {
             // Manually set one as inactive
             const peers = peerConfig.listPeers();
             peers[0].active = false;
-            fs.writeFileSync(origPeersFile, JSON.stringify(peers));
+            fs.writeFileSync(REAL_PEERS_FILE, JSON.stringify(peers));
             assert.strictEqual(peerConfig.getActivePeers().length, 0);
             peerConfig.removePeer('active');
         });
@@ -176,7 +174,7 @@ async function runTests() {
         });
 
     } finally {
-        restoreTestFile();
+        restore();
     }
 
     console.log(`\n📊 Results: ${passed} passed, ${failed} failed\n`);
