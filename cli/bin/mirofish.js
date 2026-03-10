@@ -99,21 +99,25 @@ async function main() {
                 }
                 const flags = parseFlags(args.slice(2));
                 const p2pMode = args.includes('--p2p');
+
+                // P2P: 推演開始前先廣播種子，讓 peers 同時跑
+                if (p2pMode) {
+                    await broadcastSeed(topic, {
+                        rounds: flags.rounds ? parseInt(flags.rounds) : 20,
+                        platform: flags.platform || 'parallel',
+                    });
+                }
+
                 const result = await predict(topic, {
                     rounds: flags.rounds ? parseInt(flags.rounds) : 20,
                     platform: flags.platform || 'parallel',
                     canvas: args.includes('--canvas'),
                     canvasPort: flags.port ? parseInt(flags.port) : 18790,
                 });
+
                 // P2P: 推演完成後廣播結果給 peers
-                if (p2pMode && result && result.simId) {
-                    await broadcastSeed(topic, {
-                        rounds: flags.rounds ? parseInt(flags.rounds) : 20,
-                        platform: flags.platform || 'parallel',
-                    });
-                    if (result.report) {
-                        await broadcastResult(topic, result.simId, result.report);
-                    }
+                if (p2pMode && result && result.simId && result.report) {
+                    await broadcastResult(topic, result.simId, result.report);
                 }
                 return;
             }
