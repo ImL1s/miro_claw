@@ -18,10 +18,45 @@ async function predict(seedText, opts = {}) {
     // Step 0: Ensure backend
     await ensureRunning();
 
+    // Expand short seed text into a richer document for better graph extraction
+    let documentText = seedText;
+    if (seedText.length < 200) {
+        documentText = [
+            `# Simulation Scenario: ${seedText}`,
+            '',
+            `## Background`,
+            `${seedText}. This is a significant event that will affect many stakeholders in the market.`,
+            '',
+            `## Key Stakeholders`,
+            `- Retail traders and investors who hold positions`,
+            `- Professional financial analysts and researchers`,
+            `- Cryptocurrency exchange platforms (Binance, Coinbase, etc.)`,
+            `- Institutional investors and hedge funds`,
+            `- Media commentators and KOL influencers on social media`,
+            `- Government regulators and policy makers`,
+            `- Mining companies and blockchain infrastructure providers`,
+            `- DeFi protocol developers and users`,
+            '',
+            `## Expected Dynamics`,
+            `When ${seedText}, various stakeholders will react differently based on their positions, ` +
+            `risk tolerance, and market views. Traders may take profits or increase leverage. ` +
+            `Analysts will publish forecasts. KOLs will share opinions on Twitter and Reddit. ` +
+            `Regulators may issue new guidance. Exchanges will see increased volume.`,
+            '',
+            `## Discussion Topics`,
+            `- Price predictions and technical analysis`,
+            `- Market sentiment and fear/greed index`,
+            `- Impact on altcoins and DeFi ecosystem`,
+            `- Regulatory responses from major economies`,
+            `- Institutional adoption and ETF flows`,
+        ].join('\n');
+        console.log(`   ℹ️  Expanded seed text (${seedText.length} → ${documentText.length} chars)`);
+    }
+
     // Step 1: Create project (ontology generation)
     console.log('\n📋 Step 1/7: Creating project & generating ontology...');
     const tmpFile = path.join(os.tmpdir(), `mirofish_seed_${Date.now()}.txt`);
-    fs.writeFileSync(tmpFile, seedText);
+    fs.writeFileSync(tmpFile, documentText);
     const project = await formDataUpload('/api/graph/ontology/generate', {
         simulation_requirement: seedText,
         project_name: seedText.slice(0, 50),
