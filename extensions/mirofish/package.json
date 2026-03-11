@@ -4,6 +4,11 @@
   "private": true,
   "type": "module",
   "main": "dist/index.js",
+  "openclaw": {
+    "extensions": [
+      "./index.ts"
+    ]
+  },
   "scripts": {
     "build": "tsc",
     "dev": "tsc --watch"
