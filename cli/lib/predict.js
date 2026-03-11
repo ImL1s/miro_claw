@@ -9,12 +9,14 @@ const path = require('path');
 const { request, formDataUpload } = require('./api.js');
 const { ensureRunning } = require('./docker.js');
 const { notifyPredictionComplete } = require('./notify.js');
+const { JsonStreamEmitter } = require('./json-stream.js');
 
 const POLL_INTERVAL = 15000; // 15s
 const MAX_POLL_MINUTES = 60;
 
 async function predict(seedText, opts = {}) {
     const rounds = opts.rounds || 20;
+    const jsonStream = opts.jsonStream ? wrapWithJsonStream() : null;
 
     // Step 0: Ensure backend
     await ensureRunning();
@@ -315,4 +317,8 @@ function formatReport(reportData, topic) {
     return lines.join('\n');
 }
 
-module.exports = { predict, formatReport };
+function wrapWithJsonStream(fn) {
+    return new JsonStreamEmitter(fn || ((line) => process.stdout.write(line + '\n')));
+}
+
+module.exports = { predict, formatReport, wrapWithJsonStream };

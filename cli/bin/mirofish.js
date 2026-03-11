@@ -38,6 +38,7 @@ Usage:
     --platform=parallel             Platform: twitter|reddit|parallel (default: parallel)
     --canvas                        Auto-open Canvas Dashboard after completion
     --p2p                           Broadcast seed & results to peers
+    --json-stream                   Emit NDJSON progress events to stdout
 
   mirofish canvas <sim_id>          Open interactive visual Dashboard
     --port=18790                    Dashboard server port (default: 18790)
@@ -100,6 +101,7 @@ async function main() {
                 const flags = parseFlags(args.slice(2));
                 const p2pMode = args.includes('--p2p');
                 const p2pReplyOnly = args.includes('--p2p-reply-only');
+                const jsonStreamMode = args.includes('--json-stream');
 
                 // P2P: 推演開始前先廣播種子，讓 peers 同時跑
                 if (p2pMode && !p2pReplyOnly) {
@@ -118,6 +120,7 @@ async function main() {
                     platform: flags.platform || 'parallel',
                     canvas: args.includes('--canvas'),
                     canvasPort: flags.port ? parseInt(flags.port) : 18790,
+                    jsonStream: jsonStreamMode,
                 });
 
                 // P2P: 推演完成後廣播結果給 peers
