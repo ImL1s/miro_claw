@@ -92,17 +92,28 @@ export function createMirofishTools(runManager: RunManager, log: Logger) {
           });
         }
 
-        // Wait for completion
+        // Wait for completion with safety timeout
         return new Promise<string>((resolve) => {
+          const safetyTimeout = setTimeout(() => {
+            clearInterval(checkInterval);
+            resolve(JSON.stringify({
+              status: "error",
+              runId: result.runId,
+              error: "timeout",
+              message: "Prediction timed out (safety limit reached).",
+            }));
+          }, 35 * 60 * 1000); // 35 min safety net
+
           const checkInterval = setInterval(() => {
             const lastEvent = events[events.length - 1];
             if (!lastEvent) return;
 
-            if (
-              lastEvent.event === "run:done" ||
-              lastEvent.type === "run:done"
-            ) {
+            // Check for both field names (event or type) for robustness
+            const eventName = (lastEvent as any).event || (lastEvent as any).type;
+
+            if (eventName === "run:done") {
               clearInterval(checkInterval);
+              clearTimeout(safetyTimeout);
               if (lastEvent.reportId) {
                 runManager.cacheResult(hash, lastEvent.reportId);
               }
@@ -117,11 +128,9 @@ export function createMirofishTools(runManager: RunManager, log: Logger) {
               );
             }
 
-            if (
-              lastEvent.event === "run:error" ||
-              lastEvent.type === "run:error"
-            ) {
+            if (eventName === "run:error") {
               clearInterval(checkInterval);
+              clearTimeout(safetyTimeout);
               resolve(
                 JSON.stringify({
                   status: "error",

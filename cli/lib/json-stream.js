@@ -51,7 +51,7 @@ class JsonStreamEmitter {
 
     /** Signal that a step has begun. */
     stepStart(step, name) {
-        this._emit({ event: 'step:start', step, name });
+        this._emit({ event: 'step:start', step, name: name || STEP_NAMES[step - 1] });
     }
 
     /** Report incremental progress within a step. */
