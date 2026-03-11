@@ -24,6 +24,7 @@ export interface RunManagerConfig {
 
 export interface SpawnOpts {
   onEvent: (event: unknown) => void;
+  rounds?: number;
 }
 
 export interface ActiveRun {
@@ -144,7 +145,10 @@ export function createRunManager(config: RunManagerConfig): RunManager {
     const tempRunId = `run-${Date.now()}`;
     let currentRunId = tempRunId;
 
-    const child = cpSpawn(cliBin, ["predict", topic, "--json-stream"], {
+    const args = ["predict", topic, "--json-stream"];
+    if (opts.rounds) args.push(`--rounds=${opts.rounds}`);
+
+    const child = cpSpawn(cliBin, args, {
       stdio: ["ignore", "pipe", "pipe"],
     });
 
@@ -189,7 +193,7 @@ export function createRunManager(config: RunManagerConfig): RunManager {
 
           // When run:start event arrives with a real runId, update the map key
           if (
-            event.type === "run:start" &&
+            event.event === "run:start" &&
             typeof event.runId === "string"
           ) {
             const realRunId = event.runId;
@@ -213,11 +217,22 @@ export function createRunManager(config: RunManagerConfig): RunManager {
     });
 
     // On child exit, clean up
-    child.on("close", (_code: number | null) => {
+    child.on("close", (code: number | null) => {
       if (run.timeoutTimer) clearTimeout(run.timeoutTimer);
       if (run.killTimer) clearTimeout(run.killTimer);
       activeRuns.delete(currentRunId);
+      if (code !== 0) {
+        log.error(`[MiroFish] Run ${currentRunId} exited with code ${code}`);
+        opts.onEvent({ event: "run:error", runId: currentRunId, error: "exit", message: `Process exited with code ${code}` });
+      }
       log.info(`[RunManager] Run ${currentRunId} exited`);
+    });
+
+    child.on("error", (err: Error) => {
+      if (run.timeoutTimer) clearTimeout(run.timeoutTimer);
+      activeRuns.delete(currentRunId);
+      const errorEvent = { event: "run:error", runId: currentRunId, error: "spawn", message: err.message };
+      opts.onEvent(errorEvent);
     });
 
     return { runId: tempRunId };
@@ -225,25 +240,17 @@ export function createRunManager(config: RunManagerConfig): RunManager {
 
   function cancel(runId: string): boolean {
     const run = activeRuns.get(runId);
-    if (!run || !run.process) return false;
+    if (!run?.process) return false;
 
-    // Clear existing timers
+    log.info(`[MiroFish] Cancelling run ${runId}`);
     if (run.timeoutTimer) clearTimeout(run.timeoutTimer);
-    if (run.killTimer) clearTimeout(run.killTimer);
+    activeRuns.delete(runId);  // Free slot immediately
 
-    log.info(`[RunManager] Cancelling run ${runId}, sending SIGTERM`);
     run.process.kill("SIGTERM");
-
-    // SIGKILL after 5s if still alive
-    run.killTimer = setTimeout(() => {
-      if (run.process && !run.process.killed) {
-        log.info(
-          `[RunManager] Run ${runId} still alive after cancel, sending SIGKILL`,
-        );
-        run.process.kill("SIGKILL");
-      }
-      activeRuns.delete(runId);
-    }, 5_000);
+    const proc = run.process;
+    setTimeout(() => {
+      try { proc.kill("SIGKILL"); } catch { /* already dead */ }
+    }, 5000);
 
     return true;
   }
