@@ -99,13 +99,18 @@ async function main() {
                 }
                 const flags = parseFlags(args.slice(2));
                 const p2pMode = args.includes('--p2p');
+                const p2pReplyOnly = args.includes('--p2p-reply-only');
 
                 // P2P: 推演開始前先廣播種子，讓 peers 同時跑
-                if (p2pMode) {
+                if (p2pMode && !p2pReplyOnly) {
                     await broadcastSeed(topic, {
                         rounds: flags.rounds ? parseInt(flags.rounds) : 20,
                         platform: flags.platform || 'parallel',
                     });
+                }
+
+                if (p2pReplyOnly) {
+                    console.log('\n🤖 [Auto-Predict] Started by remote peer request...');
                 }
 
                 const result = await predict(topic, {
@@ -116,7 +121,7 @@ async function main() {
                 });
 
                 // P2P: 推演完成後廣播結果給 peers
-                if (p2pMode && result && result.simId && result.report) {
+                if ((p2pMode || p2pReplyOnly) && result && result.simId && result.report) {
                     await broadcastResult(topic, result.simId, result.report);
                 }
                 return;
