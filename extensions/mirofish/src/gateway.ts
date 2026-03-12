@@ -7,6 +7,9 @@ import {
   getReport,
   getReportSummary,
   getLatestSimulationId,
+  getSimulationAgents,
+  getSimulationPosts,
+  checkEnvAlive,
 } from "./backend-client.js";
 
 interface Logger {
@@ -382,5 +385,82 @@ export function registerGatewayMethods(
     }
   });
 
-  log.info("[MiroFish] Registered gateway methods: mirofish.predict, .status, .cancel, .list, .chat, .interview, .report");
+  // mirofish.agents — list agent profiles for a simulation
+  api.registerGatewayMethod("mirofish.agents", async (opts: GatewayOpts) => {
+    const { params, respond } = opts;
+    let resolvedSimId = params.simId as string | undefined;
+    const platform = (params.platform as string) || "reddit";
+
+    if (!resolvedSimId) {
+      const latestId = await getLatestSimulationId();
+      if (!latestId) {
+        respond(false, undefined, { message: "No completed simulations found." });
+        return;
+      }
+      resolvedSimId = latestId;
+    }
+    const simId: string = resolvedSimId;
+
+    try {
+      const [agentsResult, envResult] = await Promise.all([
+        getSimulationAgents(simId, platform),
+        checkEnvAlive(simId),
+      ]);
+
+      if (!agentsResult.success || !agentsResult.agents) {
+        respond(false, undefined, { message: agentsResult.error || "Could not fetch agents" });
+        return;
+      }
+
+      respond(true, {
+        simId,
+        interviewAvailable: envResult.alive,
+        agentCount: agentsResult.agents.length,
+        agents: agentsResult.agents,
+      });
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : String(err);
+      respond(false, undefined, { message: `Agents error: ${msg}` });
+    }
+  });
+
+  // mirofish.posts — get simulation posts
+  api.registerGatewayMethod("mirofish.posts", async (opts: GatewayOpts) => {
+    const { params, respond } = opts;
+    let resolvedSimId = params.simId as string | undefined;
+    const platform = (params.platform as string) || "twitter";
+    const limit = Math.min((params.limit as number) || 20, 50);
+
+    if (!resolvedSimId) {
+      const latestId = await getLatestSimulationId();
+      if (!latestId) {
+        respond(false, undefined, { message: "No completed simulations found." });
+        return;
+      }
+      resolvedSimId = latestId;
+    }
+    const simId: string = resolvedSimId;
+
+    try {
+      const result = await getSimulationPosts(simId, platform, limit);
+
+      if (!result.success || !result.posts) {
+        respond(false, undefined, { message: result.error || "Could not fetch posts" });
+        return;
+      }
+
+      respond(true, {
+        simId,
+        platform,
+        total: result.total,
+        returned: result.posts.length,
+        posts: result.posts,
+      });
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : String(err);
+      respond(false, undefined, { message: `Posts error: ${msg}` });
+    }
+  });
+
+  log.info("[MiroFish] Registered gateway methods: mirofish.predict, .status, .cancel, .list, .chat, .interview, .report, .agents, .posts");
 }

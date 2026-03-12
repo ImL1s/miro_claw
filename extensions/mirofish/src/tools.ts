@@ -7,6 +7,9 @@ import {
   getReport,
   getReportSummary,
   getLatestSimulationId,
+  getSimulationAgents,
+  getSimulationPosts,
+  checkEnvAlive,
 } from "./backend-client.js";
 
 interface Logger {
@@ -427,6 +430,146 @@ export function createMirofishTools(
           return JSON.stringify({
             status: "error",
             message: `Report retrieval failed: ${msg}`,
+          });
+        }
+      },
+    },
+    {
+      name: "mirofish_agents",
+      description:
+        "List all AI agents in a MiroFish simulation with their names, personas, and demographics. " +
+        "Use this to discover who the agents are before interviewing them. " +
+        "When users ask about specific roles (e.g. '機構投資者', '散戶', '分析師'), " +
+        "use this tool to find the matching agent by name/persona, then use mirofish_interview with their ID. " +
+        "If simId is omitted, uses the latest completed simulation.",
+      parameters: {
+        type: "object" as const,
+        properties: {
+          simId: {
+            type: "string",
+            description: "The simulation ID. Optional — omit to use the latest.",
+          },
+          platform: {
+            type: "string",
+            description: "Platform to get profiles from: 'reddit' (default) or 'twitter'",
+          },
+        },
+        required: [],
+      },
+      async execute(
+        _toolCallId: string,
+        { simId: inputSimId, platform }: { simId?: string; platform?: string },
+      ): Promise<string> {
+        let resolvedSimId = inputSimId;
+        if (!resolvedSimId) {
+          const latestId = await getLatestSimulationId();
+          if (!latestId) {
+            return JSON.stringify({
+              status: "error",
+              message: "No completed simulations found. Run a prediction first.",
+            });
+          }
+          resolvedSimId = latestId;
+        }
+        log.info(`[mirofish_agents] simId=${resolvedSimId} platform=${platform || "reddit"}`);
+
+        try {
+          const [agentsResult, envResult] = await Promise.all([
+            getSimulationAgents(resolvedSimId, platform || "reddit"),
+            checkEnvAlive(resolvedSimId),
+          ]);
+
+          if (!agentsResult.success || !agentsResult.agents) {
+            return JSON.stringify({
+              status: "error",
+              message: agentsResult.error || "Could not fetch agent profiles",
+            });
+          }
+
+          return JSON.stringify({
+            status: "ok",
+            simId: resolvedSimId,
+            interviewAvailable: envResult.alive,
+            agentCount: agentsResult.agents.length,
+            agents: agentsResult.agents,
+          });
+        } catch (err) {
+          const msg = err instanceof Error ? err.message : String(err);
+          log.error(`[mirofish_agents] error: ${msg}`);
+          return JSON.stringify({
+            status: "error",
+            message: `Failed to fetch agents: ${msg}`,
+          });
+        }
+      },
+    },
+    {
+      name: "mirofish_posts",
+      description:
+        "Get social media posts written by AI agents during a MiroFish simulation. " +
+        "Shows what agents actually said on Twitter/Reddit about the prediction topic. " +
+        "Useful for understanding agent opinions, sentiment, and discussion dynamics. " +
+        "If simId is omitted, uses the latest completed simulation.",
+      parameters: {
+        type: "object" as const,
+        properties: {
+          simId: {
+            type: "string",
+            description: "The simulation ID. Optional — omit to use the latest.",
+          },
+          platform: {
+            type: "string",
+            description: "Platform: 'twitter' (default) or 'reddit'",
+          },
+          limit: {
+            type: "number",
+            description: "Max posts to return (default: 20, max: 50)",
+          },
+        },
+        required: [],
+      },
+      async execute(
+        _toolCallId: string,
+        { simId: inputSimId, platform, limit }: { simId?: string; platform?: string; limit?: number },
+      ): Promise<string> {
+        let resolvedSimId = inputSimId;
+        if (!resolvedSimId) {
+          const latestId = await getLatestSimulationId();
+          if (!latestId) {
+            return JSON.stringify({
+              status: "error",
+              message: "No completed simulations found. Run a prediction first.",
+            });
+          }
+          resolvedSimId = latestId;
+        }
+        const actualLimit = Math.min(limit || 20, 50);
+        log.info(`[mirofish_posts] simId=${resolvedSimId} platform=${platform || "twitter"} limit=${actualLimit}`);
+
+        try {
+          const result = await getSimulationPosts(resolvedSimId, platform || "twitter", actualLimit);
+
+          if (!result.success || !result.posts) {
+            return JSON.stringify({
+              status: "error",
+              message: result.error || "Could not fetch posts",
+            });
+          }
+
+          return JSON.stringify({
+            status: "ok",
+            simId: resolvedSimId,
+            platform: platform || "twitter",
+            total: result.total,
+            returned: result.posts.length,
+            posts: result.posts,
+          });
+        } catch (err) {
+          const msg = err instanceof Error ? err.message : String(err);
+          log.error(`[mirofish_posts] error: ${msg}`);
+          return JSON.stringify({
+            status: "error",
+            message: `Failed to fetch posts: ${msg}`,
           });
         }
       },
