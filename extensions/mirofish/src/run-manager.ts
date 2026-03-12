@@ -25,6 +25,9 @@ export interface RunManagerConfig {
 export interface SpawnOpts {
   onEvent: (event: unknown) => void;
   rounds?: number;
+  distributed?: boolean;
+  workers?: number;
+  mode?: "docker" | "native";
 }
 
 export interface ActiveRun {
@@ -160,6 +163,11 @@ export function createRunManager(config: RunManagerConfig): RunManager {
 
     const args = ["predict", topic, "--json-stream"];
     if (opts.rounds) args.push(`--rounds=${opts.rounds}`);
+    if (opts.distributed) {
+      args.push("--distributed");
+      if (opts.workers) args.push(`--workers=${opts.workers}`);
+      if (opts.mode) args.push(`--mode=${opts.mode}`);
+    }
 
     const child = cpSpawn(cliBin, args, {
       stdio: ["ignore", "pipe", "pipe"],

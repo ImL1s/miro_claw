@@ -59,15 +59,31 @@ export function createMirofishTools(
             description:
               "Number of simulation rounds (default: 20, recommended: 10-20 for testing, 30-40 for production)",
           },
+          distributed: {
+            type: "boolean",
+            description:
+              "Use distributed multi-node simulation for higher accuracy (default: false)",
+          },
+          workers: {
+            type: "number",
+            description:
+              "Number of distributed worker nodes, 1-10 (default: 2, only with distributed=true)",
+          },
+          mode: {
+            type: "string",
+            enum: ["docker", "native"],
+            description:
+              "Distributed mode: docker (Docker Compose) or native (connect to remote coordinator)",
+          },
         },
         required: ["topic"],
       },
       async execute(
         _toolCallId: string,
-        { topic, rounds }: { topic: string; rounds?: number },
+        { topic, rounds, distributed, workers, mode }: { topic: string; rounds?: number; distributed?: boolean; workers?: number; mode?: "docker" | "native" },
       ): Promise<string> {
         log.info(
-          `[mirofish_predict] topic="${topic}" rounds=${rounds ?? 20}`,
+          `[mirofish_predict] topic="${topic}" rounds=${rounds ?? 20} distributed=${distributed ?? false}`,
         );
 
         // Check idempotency cache
@@ -99,6 +115,10 @@ export function createMirofishTools(
               log.info(`[mirofish_predict] complete: reportId=${event.reportId}`);
             }
           },
+          rounds,
+          distributed,
+          workers,
+          mode,
         });
 
         if (!result) {

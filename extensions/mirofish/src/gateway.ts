@@ -168,6 +168,10 @@ export function registerGatewayMethods(
           notifyDiscord(discordWebhook, msg, log);
         }
       },
+      rounds: (params.rounds as number) || undefined,
+      distributed: (params.distributed as boolean) || undefined,
+      workers: (params.workers as number) || undefined,
+      mode: (params.mode as "docker" | "native") || undefined,
     });
 
     if (!result) {
