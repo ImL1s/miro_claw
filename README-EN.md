@@ -96,7 +96,7 @@ node cli/bin/mirofish.js serve start
 node cli/bin/mirofish.js env
 ```
 
-> **Apple Silicon users**: No ARM64 Docker image available. The CLI auto-falls back to native mode (requires the `MiroFish/` submodule and `uv`).
+> **Apple Silicon users**: No ARM64 Docker image available. The CLI auto-falls back to native mode (requires a local `MiroFish/` clone and `uv`).
 
 ### Run a Prediction
 
@@ -175,8 +175,8 @@ Secured via TLS and token authentication (`MIROFISH_CLUSTER_TOKEN`).
 ### 3. Native Mode (No Docker)
 Suitable for Python developers to step-through debug.
 ```bash
-python3 scripts/run_coordinator.py   # Terminal 1
-python3 scripts/run_worker.py --coordinator localhost:50051  # Terminal 2
+cd oasis-distributed && MIROFISH_CLUSTER_TOKEN=your-token python3 scripts/run_coordinator.py   # Terminal 1
+cd oasis-distributed && MIROFISH_CLUSTER_TOKEN=your-token COORDINATOR_ADDR=localhost:50051 python3 scripts/run_worker.py   # Terminal 2
 ```
 
 ## P2P Distributed Prediction

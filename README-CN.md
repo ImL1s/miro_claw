@@ -96,7 +96,7 @@ node cli/bin/mirofish.js serve start
 node cli/bin/mirofish.js env
 ```
 
-> **Apple Silicon 用户**：目前无 ARM64 Docker image，CLI 会自动切换到原生模式（需要 `MiroFish/` 子模块和 `uv`）。
+> **Apple Silicon 用户**：目前无 ARM64 Docker image，CLI 会自动切换到原生模式（需要本地 `MiroFish/` clone 和 `uv`）。
 
 ### 开始推演
 
@@ -174,8 +174,8 @@ docker run -e COORDINATOR_ADDR=192.168.x.x:50051 -v ./certs:/app/certs:ro oasis-
 ### 3. 原生模式 (无需 Docker)
 适合 Python 开发者单步追踪调试。
 ```bash
-python3 scripts/run_coordinator.py   # 终端 1
-python3 scripts/run_worker.py --coordinator localhost:50051  # 终端 2
+cd oasis-distributed && MIROFISH_CLUSTER_TOKEN=your-token python3 scripts/run_coordinator.py   # 终端 1
+cd oasis-distributed && MIROFISH_CLUSTER_TOKEN=your-token COORDINATOR_ADDR=localhost:50051 python3 scripts/run_worker.py   # 终端 2
 ```
 
 ## P2P 分散式推演

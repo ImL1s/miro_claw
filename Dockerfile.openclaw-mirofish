@@ -1,0 +1,72 @@
+# OpenClaw + MiroFish Full-Stack Node
+# Based on official alpine/openclaw, adds MiroFish extension + Python backend
+FROM alpine/openclaw:latest AS base
+
+USER root
+
+# ── 1. Install Python 3.11 + uv + build tools ──
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    python3 python3-pip python3-venv python3-dev \
+    curl gcc git \
+    && rm -rf /var/lib/apt/lists/*
+
+# Install uv
+RUN curl -LsSf https://astral.sh/uv/install.sh | sh
+ENV PATH="/root/.local/bin:$PATH"
+
+# ── 2. Copy MiroFish Backend ──
+COPY MiroFish/backend /app/mirofish-backend
+WORKDIR /app/mirofish-backend
+RUN uv sync --frozen 2>/dev/null || uv sync
+
+# ── 3. Copy MiroFish CLI ──
+COPY cli /app/mirofish-cli
+ENV MIROFISH_CLI_PATH=/app/mirofish-cli/bin/mirofish.js
+
+# ── 4. Install MiroFish Extension into OpenClaw ──
+# Copy the extension source into Open Claw's global extension directory
+COPY extensions/mirofish /root/.openclaw/extensions/mirofish
+# Install extension dependencies
+WORKDIR /root/.openclaw/extensions/mirofish
+RUN npm install --omit=dev 2>/dev/null || true
+
+# ── 5. Create OpenClaw config that enables MiroFish plugin ──
+RUN mkdir -p /root/.openclaw && cat > /root/.openclaw/openclaw.json << 'OCCONFIG'
+{
+  "gateway": {
+    "controlUi": {
+      "dangerouslyAllowHostHeaderOriginFallback": true
+    }
+  },
+  "plugins": {
+    "allow": ["mirofish"],
+    "entries": {
+      "mirofish": {
+        "enabled": true
+      }
+    },
+    "installs": {
+      "mirofish": {
+        "source": "path",
+        "sourcePath": "/root/.openclaw/extensions/mirofish",
+        "installPath": "/root/.openclaw/extensions/mirofish",
+        "version": "0.1.0"
+      }
+    }
+  }
+}
+OCCONFIG
+
+# ── 6. Copy entrypoint script ──
+COPY scripts/openclaw-mirofish-entrypoint.sh /app/entrypoint.sh
+RUN chmod +x /app/entrypoint.sh
+
+WORKDIR /app
+
+# Ports: OpenClaw Gateway (18787) + MiroFish Backend (5001)
+EXPOSE 18787 5001
+
+HEALTHCHECK --interval=5s --timeout=3s --retries=3 \
+    CMD curl -sf http://localhost:5001/health || exit 1
+
+ENTRYPOINT ["/app/entrypoint.sh"]

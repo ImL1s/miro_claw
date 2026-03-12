@@ -100,7 +100,7 @@ node cli/bin/mirofish.js serve start
 node cli/bin/mirofish.js env
 ```
 
-> **Apple Silicon 用戶**：目前無 ARM64 Docker image，CLI 會自動切換到原生模式（需要 `MiroFish/` 子模組和 `uv`）。
+> **Apple Silicon 用戶**：目前無 ARM64 Docker image，CLI 會自動切換到原生模式（需要本地 `MiroFish/` clone 與 `uv`）。
 
 ### 開始推演
 
@@ -183,8 +183,8 @@ docker run -e COORDINATOR_ADDR=192.168.x.x:50051 -v ./certs:/app/certs:ro oasis-
 ### 3. 原生模式 (無需 Docker)
 適合 Python 開發者單步追蹤除錯。
 ```bash
-python3 scripts/run_coordinator.py   # 終端 1
-python3 scripts/run_worker.py --coordinator localhost:50051  # 終端 2
+cd oasis-distributed && MIROFISH_CLUSTER_TOKEN=your-token python3 scripts/run_coordinator.py   # 終端 1
+cd oasis-distributed && MIROFISH_CLUSTER_TOKEN=your-token COORDINATOR_ADDR=localhost:50051 python3 scripts/run_worker.py   # 終端 2
 ```
 
 ## P2P 分散式推演

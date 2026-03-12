@@ -1,0 +1,97 @@
+# 3-Node OpenClaw + MiroFish P2P Cluster
+# Each node runs: OpenClaw Gateway (:18787) + MiroFish Backend (:5001) + Extension
+#
+# Usage:
+#   docker compose -f docker-compose.openclaw-3nodes.yml build
+#   docker compose -f docker-compose.openclaw-3nodes.yml up
+#
+# Test:
+#   openclaw gateway call mirofish.predict --params '{"topic":"如果比特幣突破20萬美元"}' --url ws://localhost:18791
+#
+# Ports:
+#   Node1: Gateway=18791, Backend=5011
+#   Node2: Gateway=18792, Backend=5012
+#   Node3: Gateway=18793, Backend=5013
+
+services:
+  node1:
+    container_name: openclaw-mirofish-node1
+    build:
+      context: .
+      dockerfile: Dockerfile.openclaw-mirofish
+    ports:
+      - "18791:18787"   # OpenClaw Gateway
+      - "5011:5001"     # MiroFish Backend
+    environment:
+      - NODE_NAME=node1
+      - LLM_API_KEY=${LLM_API_KEY}
+      - LLM_BASE_URL=${LLM_BASE_URL}
+      - LLM_MODEL_NAME=${LLM_MODEL_NAME}
+      - ZEP_API_KEY=${ZEP_API_KEY:-fake-key}
+      - MIROFISH_URL=http://localhost:5001
+      - MIROFISH_CLI_PATH=/app/mirofish-cli/bin/mirofish.js
+      - P2P_AUTO_PREDICT=true
+      - PEERS_JSON=[{"id":"node2","endpoint":"http://node2:5001","label":"node2"},{"id":"node3","endpoint":"http://node3:5001","label":"node3"}]
+    networks:
+      - p2p-net
+    healthcheck:
+      test: ["CMD", "curl", "-sf", "http://localhost:5001/health"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
+  node2:
+    container_name: openclaw-mirofish-node2
+    build:
+      context: .
+      dockerfile: Dockerfile.openclaw-mirofish
+    ports:
+      - "18792:18787"
+      - "5012:5001"
+    environment:
+      - NODE_NAME=node2
+      - LLM_API_KEY=${LLM_API_KEY}
+      - LLM_BASE_URL=${LLM_BASE_URL}
+      - LLM_MODEL_NAME=${LLM_MODEL_NAME}
+      - ZEP_API_KEY=${ZEP_API_KEY:-fake-key}
+      - MIROFISH_URL=http://localhost:5001
+      - MIROFISH_CLI_PATH=/app/mirofish-cli/bin/mirofish.js
+      - P2P_AUTO_PREDICT=true
+      - PEERS_JSON=[{"id":"node1","endpoint":"http://node1:5001","label":"node1"},{"id":"node3","endpoint":"http://node3:5001","label":"node3"}]
+    networks:
+      - p2p-net
+    healthcheck:
+      test: ["CMD", "curl", "-sf", "http://localhost:5001/health"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
+  node3:
+    container_name: openclaw-mirofish-node3
+    build:
+      context: .
+      dockerfile: Dockerfile.openclaw-mirofish
+    ports:
+      - "18793:18787"
+      - "5013:5001"
+    environment:
+      - NODE_NAME=node3
+      - LLM_API_KEY=${LLM_API_KEY}
+      - LLM_BASE_URL=${LLM_BASE_URL}
+      - LLM_MODEL_NAME=${LLM_MODEL_NAME}
+      - ZEP_API_KEY=${ZEP_API_KEY:-fake-key}
+      - MIROFISH_URL=http://localhost:5001
+      - MIROFISH_CLI_PATH=/app/mirofish-cli/bin/mirofish.js
+      - P2P_AUTO_PREDICT=true
+      - PEERS_JSON=[{"id":"node1","endpoint":"http://node1:5001","label":"node1"},{"id":"node2","endpoint":"http://node2:5001","label":"node2"}]
+    networks:
+      - p2p-net
+    healthcheck:
+      test: ["CMD", "curl", "-sf", "http://localhost:5001/health"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
+networks:
+  p2p-net:
+    driver: bridge
