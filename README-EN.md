@@ -230,7 +230,7 @@ mirofish status sim_xxx                                      # Check simulation 
 mirofish env                                                 # Show environment config
 ```
 
-### Three Operating Modes
+### Operating Modes
 
 ```
 Mode 1: Standalone Prediction ✅ Done
@@ -245,12 +245,6 @@ Mode 2: P2P Distributed Prediction ✅ Done
 │  55 Agent│    │  55 Agent│    │  55 Agent│
 └──────────┘    └──────────┘    └──────────┘
   Each predicts → Broadcasts results → Merges consensus report
-
-Mode 3: On-chain Attestation 🚧 Planned
-┌──────────────────────────────────┐
-│  Cosmos SDK AppChain             │
-│  On-chain results · Reputation   │
-└──────────────────────────────────┘
 ```
 
 ### P2P Multi-Node Deployment

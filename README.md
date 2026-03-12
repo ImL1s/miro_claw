@@ -230,7 +230,7 @@ mirofish status sim_xxx                                   # 查詢模擬進度
 mirofish env                                              # 顯示環境設定
 ```
 
-### 三種運作模式
+### 運作模式
 
 ```
 模式 1：單機推演 ✅ 已完成
@@ -245,12 +245,6 @@ mirofish env                                              # 顯示環境設定
 │  55 Agent│    │  55 Agent│    │  55 Agent│
 └──────────┘    └──────────┘    └──────────┘
   各自推演 → 廣播結果 → 合併共識報告
-
-模式 3：鏈上存證 🚧 規劃中
-┌──────────────────────────────────┐
-│  Cosmos SDK AppChain             │
-│  推演結果上鏈 · 信譽系統 · 驗證  │
-└──────────────────────────────────┘
 ```
 
 ### P2P 多節點部署
@@ -258,7 +252,6 @@ mirofish env                                              # 顯示環境設定
 #### Docker 一鍵啟動 3 節點
 
 ```bash
-# 建構 + 啟動
 docker compose -f docker-compose.p2p-3nodes.yml build
 docker compose -f docker-compose.p2p-3nodes.yml up -d
 
@@ -267,52 +260,24 @@ curl http://localhost:5011/health   # Node1
 curl http://localhost:5012/health   # Node2
 curl http://localhost:5013/health   # Node3
 
-# 從 Node1 發起 P2P 推演（自動廣播到 Node2 + Node3）
+# 從 Node1 發起 P2P 推演
 docker exec mirofish-p2p-node1 node /app/cli/bin/mirofish.js \
   predict "如果比特幣突破20萬" --p2p --rounds=3
 
-# 停止叢集
 docker compose -f docker-compose.p2p-3nodes.yml down
 ```
-
-每個節點自動配置 peers 並啟用 `P2P_AUTO_PREDICT=true`，收到種子後自動推演。
 
 #### 手動模式（跨 LAN 多機）
 
 ```bash
-# 每台機器互相加入 peer
 mirofish peers add http://192.168.1.200:5001 "lab-server"
 mirofish peers add http://192.168.1.201:5001 "gpu-box"
 mirofish peers health
-
-# 發起 P2P 推演 + 合併共識
 mirofish predict "主題" --p2p
 mirofish meta "主題"
 ```
 
 > 在 peer 機器上設定 `P2P_AUTO_PREDICT=true`（`~/.mirofish/.env`）讓收到種子後自動推演。
-
-#### P2P 流程圖
-
-```
-Node A (你的機器)           Node B                    Node C
-──────────────────        ──────────────          ────────────
-1. 廣播種子 ──────────>  收到種子                 收到種子
-2. 本機推演開始           [AUTO_PREDICT 自動跑]    [AUTO_PREDICT 自動跑]
-3. 本機推演完成           推演完成                 推演完成
-4. 廣播結果 ──────────>  儲存結果                 儲存結果
-5. mirofish meta <────── 回傳結果 ───────────── 回傳結果
-   → 合併共識報告
-```
-
-#### P2P API Endpoints
-
-| Endpoint | 方法 | 說明 |
-|:---|:---|:---|
-| `/api/p2p/predict` | POST | 接收種子廣播 |
-| `/api/p2p/result` | POST | 接收其他節點推演結果 |
-| `/api/p2p/results?topic=...` | GET | 查詢已收集結果 |
-| `/api/p2p/seeds` | GET | 查看收到的種子列表 |
 
 ### OASIS 分散式（gRPC Worker 模式）
 
