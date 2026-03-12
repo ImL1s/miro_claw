@@ -1,0 +1,23 @@
+MiroClaw
+Copyright (C) 2026 MiroClaw Contributors
+
+This product includes software developed by third parties:
+
+================================================================================
+OASIS (Open Agent Social Interaction Simulations)
+Copyright (C) CAMEL-AI.org
+Licensed under the Apache License, Version 2.0
+Source: https://github.com/camel-ai/oasis
+
+The oasis-distributed/ directory contains code derived from the OASIS project.
+A copy of the Apache License 2.0 is available at oasis-distributed/LICENSE.
+================================================================================
+
+================================================================================
+MiroFish (55 AI Agent Social Simulation Engine)
+Copyright (C) 666ghj
+Licensed under the GNU Affero General Public License v3.0
+Source: https://github.com/666ghj/MiroFish
+
+MiroFish is used as a runtime dependency (not bundled in this repository).
+================================================================================

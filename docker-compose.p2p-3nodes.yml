@@ -1,0 +1,80 @@
+# Docker Compose — 3-Node P2P MiroFish Cluster
+#
+# 啟動 3 個 MiroFish 後端節點，互相配置為 peers，
+# 並開啟 P2P_AUTO_PREDICT 讓它們收到種子後自動跑模擬。
+#
+# Usage:
+#   docker compose -f docker-compose.p2p-3nodes.yml build
+#   docker compose -f docker-compose.p2p-3nodes.yml up
+#
+# 測試:
+#   node cli/bin/mirofish.js predict "BTC 突破 15 萬" --p2p --rounds=3
+#   (需要先在 host 端設定 peers 指向 localhost:5011/5012/5013)
+
+services:
+  node1:
+    build:
+      context: .
+      dockerfile: Dockerfile.p2p-node
+    container_name: mirofish-p2p-node1
+    ports:
+      - "5011:5001"
+    environment:
+      - NODE_NAME=node1
+      - P2P_AUTO_PREDICT=true
+      - LLM_API_KEY=${LLM_API_KEY}
+      - LLM_BASE_URL=${LLM_BASE_URL}
+      - LLM_MODEL_NAME=${LLM_MODEL_NAME}
+      - ZEP_API_KEY=${ZEP_API_KEY}
+      - MIROFISH_URL=http://localhost:5001
+      - PEERS_JSON=[{"id":"node2","endpoint":"http://node2:5001","active":true,"addedAt":0},{"id":"node3","endpoint":"http://node3:5001","active":true,"addedAt":0}]
+    networks:
+      - p2p-net
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+
+  node2:
+    build:
+      context: .
+      dockerfile: Dockerfile.p2p-node
+    container_name: mirofish-p2p-node2
+    ports:
+      - "5012:5001"
+    environment:
+      - NODE_NAME=node2
+      - P2P_AUTO_PREDICT=true
+      - LLM_API_KEY=${LLM_API_KEY}
+      - LLM_BASE_URL=${LLM_BASE_URL}
+      - LLM_MODEL_NAME=${LLM_MODEL_NAME}
+      - ZEP_API_KEY=${ZEP_API_KEY}
+      - MIROFISH_URL=http://localhost:5001
+      - PEERS_JSON=[{"id":"node1","endpoint":"http://node1:5001","active":true,"addedAt":0},{"id":"node3","endpoint":"http://node3:5001","active":true,"addedAt":0}]
+    networks:
+      - p2p-net
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+
+  node3:
+    build:
+      context: .
+      dockerfile: Dockerfile.p2p-node
+    container_name: mirofish-p2p-node3
+    ports:
+      - "5013:5001"
+    environment:
+      - NODE_NAME=node3
+      - P2P_AUTO_PREDICT=true
+      - LLM_API_KEY=${LLM_API_KEY}
+      - LLM_BASE_URL=${LLM_BASE_URL}
+      - LLM_MODEL_NAME=${LLM_MODEL_NAME}
+      - ZEP_API_KEY=${ZEP_API_KEY}
+      - MIROFISH_URL=http://localhost:5001
+      - PEERS_JSON=[{"id":"node1","endpoint":"http://node1:5001","active":true,"addedAt":0},{"id":"node2","endpoint":"http://node2:5001","active":true,"addedAt":0}]
+    networks:
+      - p2p-net
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+
+networks:
+  p2p-net:
+    driver: bridge

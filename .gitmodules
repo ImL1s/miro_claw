@@ -1,0 +1,3 @@
+[submodule "oasis-distributed"]
+	path = oasis-distributed
+	url = https://github.com/ImL1s/oasis-distributed.git

@@ -1,0 +1,41 @@
+node_modules/
+.env
+*.log
+.DS_Store
+/MiroFish/
+.omc/
+cli/canvas/
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+.venv/
+venv/
+*.egg-info/
+
+# Build artifacts
+dist/
+
+# Secrets & certificates
+*.key
+*.pem
+*.p12
+*.pfx
+*.keystore
+*.jks
+*.secret
+credentials*.json
+service-account*.json
+.env.*
+!.env.example
+
+# IDE & tools
+.vscode/
+.idea/
+.playwright-mcp/
+
+# Videos (use external hosting)
+*.mp4
+*.avi
+*.mov

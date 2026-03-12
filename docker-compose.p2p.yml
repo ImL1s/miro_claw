@@ -1,0 +1,54 @@
+# Docker Compose — MiroFish P2P 雙節點
+
+version: '3.8'
+
+services:
+  # ── Node A ──────────────────────────────────
+  mirofish-a:
+    build:
+      context: ./MiroFish
+      dockerfile: Dockerfile
+    container_name: mirofish-node-a
+    ports:
+      - "5001:5001"
+    environment:
+      - FLASK_APP=app
+      - LLM_BASE_URL=${LLM_BASE_URL}
+      - LLM_API_KEY=${LLM_API_KEY}
+      - LLM_MODEL_NAME=${LLM_MODEL_NAME:-gpt-4o}
+      - ZEP_API_KEY=${ZEP_API_KEY}
+      - NODE_NAME=node-a
+    networks:
+      - p2p-net
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5001/health"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+
+  # ── Node B ──────────────────────────────────
+  mirofish-b:
+    build:
+      context: ./MiroFish
+      dockerfile: Dockerfile
+    container_name: mirofish-node-b
+    ports:
+      - "5002:5001"
+    environment:
+      - FLASK_APP=app
+      - LLM_BASE_URL=${LLM_BASE_URL_B:-${LLM_BASE_URL}}
+      - LLM_API_KEY=${LLM_API_KEY_B:-${LLM_API_KEY}}
+      - LLM_MODEL_NAME=${LLM_MODEL_NAME_B:-claude-3-5-sonnet}
+      - ZEP_API_KEY=${ZEP_API_KEY}
+      - NODE_NAME=node-b
+    networks:
+      - p2p-net
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5001/health"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+
+networks:
+  p2p-net:
+    driver: bridge

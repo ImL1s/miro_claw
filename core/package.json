@@ -1,0 +1,20 @@
+{
+  "name": "@mirofish/core",
+  "version": "0.1.0",
+  "description": "Shared types and constants for MiroFish CLI and Extension",
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "files": [
+    "dist/"
+  ],
+  "scripts": {
+    "build": "tsc",
+    "test": "node --test dist/test/*.test.js"
+  },
+  "license": "AGPL-3.0-only",
+  "devDependencies": {
+    "@types/node": "^25.4.0",
+    "typescript": "^5.9.3"
+  }
+}

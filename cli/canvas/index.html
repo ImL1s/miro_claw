@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="zh-TW" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MiroFish — Prediction Dashboard</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11/build/styles/atom-one-dark.min.css">
+    <script src="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11/build/highlight.min.js"></script>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <!-- Header -->
+    <header class="app-header">
+        <div class="brand">
+            <span class="brand-icon">🐟</span>
+            <span class="brand-text">MIROFISH</span>
+            <span class="brand-badge">PREDICTION</span>
+        </div>
+        <div class="header-meta">
+            <span class="meta-item" id="sim-id"></span>
+            <span class="meta-dot">·</span>
+            <span class="meta-item" id="report-status"></span>
+        </div>
+    </header>
+
+    <!-- Main Layout -->
+    <div class="main-layout">
+        <!-- Sidebar -->
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <h3>📑 Sections</h3>
+            </div>
+            <nav class="section-nav" id="section-nav">
+                <!-- Dynamically populated -->
+            </nav>
+
+            <div class="sidebar-divider"></div>
+
+            <div class="sidebar-header">
+                <h3>🤖 Agents</h3>
+            </div>
+            <div class="agent-list" id="agent-list">
+                <div class="agent-empty">推演完成後顯示 Agent 觀點</div>
+            </div>
+        </aside>
+
+        <!-- Content Area -->
+        <main class="content-area">
+            <!-- Report Card -->
+            <div class="report-card" id="report-card">
+                <div class="card-header">
+                    <span class="card-tag">Prediction Report</span>
+                    <span class="card-id" id="report-id"></span>
+                </div>
+                <h1 class="card-title" id="report-title">Loading...</h1>
+                <p class="card-summary" id="report-summary"></p>
+                <div class="card-stats">
+                    <div class="stat">
+                        <span class="stat-value" id="stat-sections">-</span>
+                        <span class="stat-label">Sections</span>
+                    </div>
+                    <div class="stat">
+                        <span class="stat-value" id="stat-agents">55</span>
+                        <span class="stat-label">Agents</span>
+                    </div>
+                    <div class="stat">
+                        <span class="stat-value" id="stat-rounds">-</span>
+                        <span class="stat-label">Rounds</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Key Events (A2UI Highlight) -->
+            <div class="highlight-bar" id="highlight-bar">
+                <!-- Dynamically populated -->
+            </div>
+
+            <!-- Report Content -->
+            <div class="report-content" id="report-content">
+                <div class="loading-state">
+                    <div class="spinner"></div>
+                    <p>Loading report data...</p>
+                </div>
+            </div>
+
+            <!-- Chat Box -->
+            <div class="chat-panel" id="chat-panel">
+                <div class="chat-header">
+                    <h3>💬 Ask Report Agent</h3>
+                    <button class="chat-toggle" id="chat-toggle" title="Toggle chat">▼</button>
+                </div>
+                <div class="chat-body" id="chat-body">
+                    <div class="chat-messages" id="chat-messages">
+                        <div class="chat-hint">向 Report Agent 提問關於推演結果的問題。Agent 會使用知識圖譜工具來分析和回答。</div>
+                    </div>
+                    <div class="chat-input-row">
+                        <input type="text" id="chat-input" class="chat-input" placeholder="輸入問題... (Enter 發送)" />
+                        <button id="chat-send" class="chat-send">→</button>
+                    </div>
+                    <div class="chat-actions">
+                        <button class="action-chip" data-question="哪些 KOL 的觀點最極端？">🔥 極端觀點</button>
+                        <button class="action-chip" data-question="市場共識是什麼？">📊 市場共識</button>
+                        <button class="action-chip" data-question="最大的風險因素有哪些？">⚠️ 風險因素</button>
+                        <button class="action-chip" data-question="對散戶有什麼建議？">💡 散戶建議</button>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>

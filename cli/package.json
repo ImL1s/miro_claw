@@ -1,0 +1,28 @@
+{
+    "name": "mirofish-cli",
+    "version": "0.4.0",
+    "description": "MiroFish 群體智能推演引擎 CLI — 55 AI Agents 模擬 + P2P 分散式推演",
+    "bin": {
+        "mirofish": "./bin/mirofish.js"
+    },
+    "files": [
+        "bin/",
+        "lib/"
+    ],
+    "keywords": [
+        "mirofish",
+        "ai",
+        "simulation",
+        "multi-agent",
+        "prediction",
+        "openclaw"
+    ],
+    "license": "AGPL-3.0-only",
+    "engines": {
+        "node": ">=18.0.0"
+    },
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/ImL1s/miro_claw"
+    }
+}

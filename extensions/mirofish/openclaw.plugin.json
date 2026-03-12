@@ -1,0 +1,40 @@
+{
+  "id": "mirofish",
+  "name": "MiroFish Prediction Engine",
+  "version": "0.1.0",
+  "description": "55-agent social simulation prediction engine with P2P consensus — predict market sentiment, policy impact, and social dynamics.",
+  "configSchema": {
+    "type": "object",
+    "properties": {
+      "backendUrl": {
+        "type": "string",
+        "description": "MiroFish backend API URL"
+      },
+      "maxConcurrent": {
+        "type": "number",
+        "description": "Maximum concurrent prediction runs"
+      },
+      "autoTrigger": {
+        "type": "boolean",
+        "description": "Enable auto-trigger on prediction-related messages"
+      }
+    }
+  },
+  "uiHints": {
+    "backendUrl": {
+      "label": "Backend URL",
+      "description": "MiroFish backend API URL (e.g. http://localhost:8000)",
+      "type": "string"
+    },
+    "maxConcurrent": {
+      "label": "Max Concurrent Runs",
+      "description": "Maximum number of prediction runs that can execute simultaneously (default: 2)",
+      "type": "number"
+    },
+    "autoTrigger": {
+      "label": "Auto-Trigger",
+      "description": "Automatically trigger predictions when messages contain keywords like 推演, 預測, 模擬",
+      "type": "boolean"
+    }
+  }
+}
