@@ -1,0 +1,8 @@
+{
+  "name": "mirofish-predict",
+  "version": "1.0.0",
+  "description": "MiroFish 群體智能推演引擎 — 55 AI Agents simulate social interactions to predict trends",
+  "license": "AGPL-3.0",
+  "homepage": "https://github.com/ImL1s/miro_claw",
+  "dependencies": {}
+}
