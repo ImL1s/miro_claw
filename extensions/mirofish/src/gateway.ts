@@ -198,9 +198,18 @@ export function registerGatewayMethods(
         return;
       }
 
-      // Layer 2: Completed runs
+      // Layer 2: Completed/cancelled/errored runs
       const completed = runManager.getCompletedRun(runId);
       if (completed) {
+        const runStatus = completed.status || "completed";
+        if (runStatus === "cancelled") {
+          respond(true, { status: "cancelled", runId, topic: completed.topic });
+          return;
+        }
+        if (runStatus === "error") {
+          respond(true, { status: "error", runId, topic: completed.topic });
+          return;
+        }
         respond(true, {
           status: "completed",
           runId,

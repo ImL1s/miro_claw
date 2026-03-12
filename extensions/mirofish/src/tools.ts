@@ -139,9 +139,26 @@ export function createMirofishTools(
           });
         }
 
-        // Layer 2: Completed runs
+        // Layer 2: Completed/cancelled/errored runs
         const completed = runManager.getCompletedRun(runId);
         if (completed) {
+          const runStatus = completed.status || "completed";
+          if (runStatus === "cancelled") {
+            return JSON.stringify({
+              status: "cancelled",
+              runId,
+              topic: completed.topic,
+              message: `Prediction was cancelled.`,
+            });
+          }
+          if (runStatus === "error") {
+            return JSON.stringify({
+              status: "error",
+              runId,
+              topic: completed.topic,
+              message: `Prediction failed.`,
+            });
+          }
           return JSON.stringify({
             status: "completed",
             runId,

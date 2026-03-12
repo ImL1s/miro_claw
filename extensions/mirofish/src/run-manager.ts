@@ -68,6 +68,7 @@ export interface CompletedRun {
   simId: string;
   reportId: string;
   completedAt: number;
+  status?: "completed" | "cancelled" | "error";
 }
 
 // ── Factory ────────────────────────────────────────────────────
@@ -224,6 +225,7 @@ export function createRunManager(config: RunManagerConfig): RunManager {
               simId: (event.simId as string) || "",
               reportId: (event.reportId as string) || "",
               completedAt: Date.now(),
+              status: "completed",
             };
             completedRuns.set(tempRunId, completed);
             if (typeof event.runId === "string" && event.runId !== tempRunId) {
@@ -266,9 +268,35 @@ export function createRunManager(config: RunManagerConfig): RunManager {
       cleanupRun();
       if (run.cancelled) {
         log.info(`[MiroFish] Run ${tempRunId} cancelled`);
+        // Store cancelled run so status queries return "cancelled" instead of "not_found"
+        const cancelled: CompletedRun = {
+          runId: currentRunId,
+          topic,
+          simId: "",
+          reportId: "",
+          completedAt: Date.now(),
+          status: "cancelled",
+        };
+        completedRuns.set(tempRunId, cancelled);
+        if (currentRunId !== tempRunId) {
+          completedRuns.set(currentRunId, cancelled);
+        }
         opts.onEvent({ event: "run:cancelled", runId: tempRunId });
       } else if (code !== 0) {
         log.error(`[MiroFish] Run ${tempRunId} exited with code ${code}`);
+        // Store errored run for status queries
+        const errored: CompletedRun = {
+          runId: currentRunId,
+          topic,
+          simId: "",
+          reportId: "",
+          completedAt: Date.now(),
+          status: "error",
+        };
+        completedRuns.set(tempRunId, errored);
+        if (currentRunId !== tempRunId) {
+          completedRuns.set(currentRunId, errored);
+        }
         opts.onEvent({ event: "run:error", runId: tempRunId, error: "exit", message: `Process exited with code ${code}` });
       }
       log.info(`[RunManager] Run ${tempRunId} exited`);
@@ -291,7 +319,23 @@ export function createRunManager(config: RunManagerConfig): RunManager {
     log.info(`[MiroFish] Cancelling run ${runId}`);
     run.cancelled = true;
     if (run.timeoutTimer) clearTimeout(run.timeoutTimer);
-    activeRuns.delete(runId);  // Free slot immediately
+
+    // Store cancelled run immediately (don't wait for close event)
+    const cancelled: CompletedRun = {
+      runId: run.runId,
+      topic: run.topic,
+      simId: "",
+      reportId: "",
+      completedAt: Date.now(),
+      status: "cancelled",
+    };
+    // Store under all keys that point to this run
+    for (const [key, val] of activeRuns) {
+      if (val === run) {
+        completedRuns.set(key, cancelled);
+        activeRuns.delete(key);
+      }
+    }
 
     run.process.kill("SIGTERM");
     const proc = run.process;
