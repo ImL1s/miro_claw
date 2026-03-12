@@ -5,6 +5,8 @@
  */
 
 const DEFAULT_BACKEND_URL = "http://localhost:5001";
+const LLM_TIMEOUT_MS = 120_000;  // 120s for LLM-dependent calls (chat, interview)
+const DATA_TIMEOUT_MS = 30_000;  // 30s for data fetches (report)
 
 function getBaseUrl(): string {
   return process.env.MIROFISH_URL || DEFAULT_BACKEND_URL;
@@ -25,6 +27,10 @@ interface InterviewResponse {
   data?: {
     response: string;
     agent_id: number;
+    result?: {
+      platforms?: Record<string, { response?: string; platform?: string }>;
+      [key: string]: unknown;
+    };
     [key: string]: unknown;
   };
   error?: string;
@@ -54,19 +60,27 @@ export async function chatWithAgent(
   chatHistory: { role: string; content: string }[] = [],
 ): Promise<ChatResponse> {
   const url = `${getBaseUrl()}/api/report/chat`;
-  const res = await fetch(url, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      simulation_id: simId,
-      message,
-      chat_history: chatHistory,
-    }),
-  });
-  if (!res.ok) {
-    return { success: false, error: `Backend HTTP ${res.status}` };
+  try {
+    const res = await fetch(url, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        simulation_id: simId,
+        message,
+        chat_history: chatHistory,
+      }),
+      signal: AbortSignal.timeout(LLM_TIMEOUT_MS),
+    });
+    if (!res.ok) {
+      return { success: false, error: `Backend HTTP ${res.status}` };
+    }
+    return (await res.json()) as ChatResponse;
+  } catch (err) {
+    if (err instanceof DOMException && err.name === "TimeoutError") {
+      return { success: false, error: "Backend response timeout (120s). The LLM may be overloaded." };
+    }
+    throw err;
   }
-  return (await res.json()) as ChatResponse;
 }
 
 /**
@@ -78,19 +92,38 @@ export async function interviewAgent(
   question: string,
 ): Promise<InterviewResponse> {
   const url = `${getBaseUrl()}/api/simulation/interview`;
-  const res = await fetch(url, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      simulation_id: simId,
-      agent_id: agentId,
-      prompt: question,
-    }),
-  });
-  if (!res.ok) {
-    return { success: false, error: `Backend HTTP ${res.status}` };
+  try {
+    const res = await fetch(url, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        simulation_id: simId,
+        agent_id: agentId,
+        prompt: question,
+      }),
+      signal: AbortSignal.timeout(LLM_TIMEOUT_MS),
+    });
+    if (!res.ok) {
+      return { success: false, error: `Backend HTTP ${res.status}` };
+    }
+    const json = (await res.json()) as InterviewResponse;
+    // Backend returns response nested in data.result.platforms.{platform}.response
+    // Flatten it to data.response for consumers
+    if (json.success && json.data && !json.data.response && json.data.result?.platforms) {
+      const platforms = json.data.result.platforms;
+      const first = Object.values(platforms).find((p) => p.response);
+      if (first?.response) {
+        // Strip <think>...</think> tags from chain-of-thought
+        json.data.response = first.response.replace(/<think>[\s\S]*?<\/think>\s*/g, "").trim();
+      }
+    }
+    return json;
+  } catch (err) {
+    if (err instanceof DOMException && err.name === "TimeoutError") {
+      return { success: false, error: "Backend response timeout (120s). The LLM may be overloaded." };
+    }
+    throw err;
   }
-  return (await res.json()) as InterviewResponse;
 }
 
 /**
@@ -98,11 +131,18 @@ export async function interviewAgent(
  */
 export async function getReport(simId: string): Promise<ReportResponse> {
   const url = `${getBaseUrl()}/api/report/by-simulation/${encodeURIComponent(simId)}`;
-  const res = await fetch(url);
-  if (!res.ok) {
-    return { success: false, error: `Backend HTTP ${res.status}` };
+  try {
+    const res = await fetch(url, { signal: AbortSignal.timeout(DATA_TIMEOUT_MS) });
+    if (!res.ok) {
+      return { success: false, error: `Backend HTTP ${res.status}` };
+    }
+    return (await res.json()) as ReportResponse;
+  } catch (err) {
+    if (err instanceof DOMException && err.name === "TimeoutError") {
+      return { success: false, error: "Backend response timeout (30s)." };
+    }
+    throw err;
   }
-  return (await res.json()) as ReportResponse;
 }
 
 /**
