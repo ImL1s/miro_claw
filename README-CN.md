@@ -343,4 +343,4 @@ miro_claw/
 
 ## License
 
-MIT
+[AGPL-3.0](LICENSE)
