@@ -178,6 +178,60 @@ export function createMirofishTools(
       },
     },
 
+    {
+      name: "mirofish_cancel",
+      description:
+        "Cancel a running MiroFish prediction. Use this when the user wants to stop/abort/cancel a prediction.",
+      parameters: {
+        type: "object" as const,
+        properties: {
+          runId: {
+            type: "string",
+            description: "The run ID to cancel. If omitted, cancels the most recent active run.",
+          },
+        },
+        required: [],
+      },
+      async execute(
+        _toolCallId: string,
+        { runId }: { runId?: string },
+      ): Promise<string> {
+        // If no runId, find the most recent active run
+        if (!runId) {
+          const runs = runManager.getActiveRuns();
+          if (runs.size === 0) {
+            return JSON.stringify({
+              status: "error",
+              message: "No active predictions to cancel.",
+            });
+          }
+          // Pick the most recent one
+          const entries = [...runs.entries()].filter(([k]) => k.startsWith("run-"));
+          if (entries.length === 0) {
+            return JSON.stringify({
+              status: "error",
+              message: "No active predictions to cancel.",
+            });
+          }
+          runId = entries[entries.length - 1][0];
+        }
+
+        log.info(`[mirofish_cancel] runId=${runId}`);
+        const cancelled = runManager.cancel(runId);
+        if (!cancelled) {
+          return JSON.stringify({
+            status: "error",
+            message: `Could not cancel run "${runId}". It may have already finished or does not exist.`,
+          });
+        }
+        return JSON.stringify({
+          status: "cancelled",
+          runId,
+          message: `Prediction ${runId} has been cancelled.`,
+        });
+      },
+    },
+
     // --- Phase 3: Interactive tools ---
 
     {
