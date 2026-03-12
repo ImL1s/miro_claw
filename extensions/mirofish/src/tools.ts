@@ -297,9 +297,8 @@ export function createMirofishTools(
       description:
         "Interview a specific AI agent from a MiroFish simulation. " +
         "Each simulation has ~55 agents with distinct personas. " +
-        "IMPORTANT: Only works while simulation is still RUNNING. " +
-        "For completed/stopped simulations, use mirofish_chat instead — " +
-        "the Report Agent can answer questions about specific agents from the knowledge graph.",
+        "Works on recently completed simulations (the agent environment stays alive after rounds finish). " +
+        "Use the simId from mirofish_report or mirofish_status results.",
       parameters: {
         type: "object" as const,
         properties: {
@@ -331,7 +330,6 @@ export function createMirofishTools(
             return JSON.stringify({
               status: "error",
               message: result.error || "Interview failed",
-              hint: "The simulation may have stopped. Use mirofish_chat with the same simId to ask the Report Agent about this agent instead.",
             });
           }
 
