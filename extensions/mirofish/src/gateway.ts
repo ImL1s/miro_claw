@@ -6,6 +6,7 @@ import {
   interviewAgent,
   getReport,
   getReportSummary,
+  getLatestSimulationId,
 } from "./backend-client.js";
 
 interface Logger {
@@ -336,13 +337,20 @@ export function registerGatewayMethods(
   // mirofish.report — get prediction report
   api.registerGatewayMethod("mirofish.report", async (opts: GatewayOpts) => {
     const { params, respond } = opts;
-    const simId = params.simId as string;
+    let resolvedSimId = params.simId as string | undefined;
     const format = (params.format as string) || "summary";
 
-    if (!simId) {
-      respond(false, undefined, { message: "Missing required parameter: simId" });
-      return;
+    // Auto-resolve latest simulation if simId not provided
+    if (!resolvedSimId) {
+      const latestId = await getLatestSimulationId();
+      if (!latestId) {
+        respond(false, undefined, { message: "No completed simulations found. Run a prediction first." });
+        return;
+      }
+      resolvedSimId = latestId;
+      log.info(`[mirofish.report] auto-resolved to latest simId=${resolvedSimId}`);
     }
+    const simId: string = resolvedSimId;
 
     try {
       if (format === "full") {

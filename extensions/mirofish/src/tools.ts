@@ -6,6 +6,7 @@ import {
   interviewAgent,
   getReport,
   getReportSummary,
+  getLatestSimulationId,
 } from "./backend-client.js";
 
 interface Logger {
@@ -38,9 +39,10 @@ export function createMirofishTools(
     {
       name: "mirofish_predict",
       description:
-        "Run a MiroFish multi-agent prediction simulation. " +
+        "Start a NEW MiroFish multi-agent prediction simulation. " +
         "55 AI agents simulate social media discussions (Twitter/Reddit) about a given topic, " +
-        "then generate a consensus prediction report. Takes 10-30 minutes.",
+        "then generate a consensus prediction report. Takes 10-30 minutes. " +
+        "Only use this to start NEW predictions. To view existing reports, use mirofish_report instead.",
       parameters: {
         type: "object" as const,
         properties: {
@@ -295,13 +297,15 @@ export function createMirofishTools(
       name: "mirofish_report",
       description:
         "Get the prediction report for a completed simulation. " +
-        "Returns a summary or full markdown report. Use 'summary' format for chat display.",
+        "Use this when user asks about report summaries, prediction results, or analysis. " +
+        "If simId is omitted, automatically fetches the latest completed report. " +
+        "Do NOT start a new prediction when the user asks about existing reports.",
       parameters: {
         type: "object" as const,
         properties: {
           simId: {
             type: "string",
-            description: "The simulation ID",
+            description: "The simulation ID. Optional — omit to get the latest completed report.",
           },
           format: {
             type: "string",
@@ -309,17 +313,30 @@ export function createMirofishTools(
               "Output format: 'summary' (first ~2000 chars, good for chat) or 'full' (complete report)",
           },
         },
-        required: ["simId"],
+        required: [],
       },
       async execute(
         _toolCallId: string,
-        { simId, format }: { simId: string; format?: string },
+        { simId: inputSimId, format }: { simId?: string; format?: string },
       ): Promise<string> {
-        log.info(`[mirofish_report] simId=${simId} format=${format || "summary"}`);
+        // Auto-resolve latest simulation if simId not provided
+        let resolvedSimId = inputSimId;
+        if (!resolvedSimId) {
+          const latestId = await getLatestSimulationId();
+          if (!latestId) {
+            return JSON.stringify({
+              status: "error",
+              message: "No completed simulations found. Run a prediction first with mirofish_predict.",
+            });
+          }
+          resolvedSimId = latestId;
+          log.info(`[mirofish_report] auto-resolved to latest simId=${resolvedSimId}`);
+        }
+        log.info(`[mirofish_report] simId=${resolvedSimId} format=${format || "summary"}`);
 
         try {
           if (format === "full") {
-            const result = await getReport(simId);
+            const result = await getReport(resolvedSimId);
             if (!result.success || !result.data) {
               return JSON.stringify({
                 status: "error",
@@ -334,11 +351,11 @@ export function createMirofishTools(
           }
 
           // Default: summary
-          const summary = await getReportSummary(simId);
+          const summary = await getReportSummary(resolvedSimId);
           if (!summary) {
             return JSON.stringify({
               status: "error",
-              message: `No report found for simulation ${simId}. The simulation may still be running.`,
+              message: `No report found for simulation ${resolvedSimId}. The simulation may still be running.`,
             });
           }
 

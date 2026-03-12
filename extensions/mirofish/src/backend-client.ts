@@ -127,6 +127,34 @@ export async function interviewAgent(
 }
 
 /**
+ * Get the latest simulation ID that has a report.
+ * Tries stopped simulations in reverse chronological order, verifying each has a report.
+ * Returns null if none found.
+ */
+export async function getLatestSimulationId(): Promise<string | null> {
+  const url = `${getBaseUrl()}/api/simulation/list`;
+  try {
+    const res = await fetch(url, { signal: AbortSignal.timeout(DATA_TIMEOUT_MS) });
+    if (!res.ok) return null;
+    const json = (await res.json()) as { data: Array<{ simulation_id: string; status: string; created_at?: string }> };
+    // Find stopped simulations, sorted by most recent first
+    const stopped = json.data?.filter((s) => s.status === "stopped");
+    if (!stopped?.length) return null;
+    stopped.sort((a, b) => (b.created_at || "").localeCompare(a.created_at || ""));
+    // Check each until we find one with an actual report
+    for (const sim of stopped) {
+      const report = await getReport(sim.simulation_id);
+      if (report.success && report.data?.markdown_content) {
+        return sim.simulation_id;
+      }
+    }
+    return null;
+  } catch {
+    return null;
+  }
+}
+
+/**
  * Get report by simulation ID.
  */
 export async function getReport(simId: string): Promise<ReportResponse> {
