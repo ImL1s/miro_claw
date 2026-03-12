@@ -5,3 +5,36 @@ node_modules/
 /MiroFish/
 .omc/
 cli/canvas/
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+.venv/
+venv/
+*.egg-info/
+
+# Build artifacts
+dist/
+
+# Secrets & certificates
+*.key
+*.pem
+*.p12
+*.pfx
+*.keystore
+*.jks
+*.secret
+credentials*.json
+service-account*.json
+.env.*
+!.env.example
+
+# IDE
+.vscode/
+.idea/
+
+# Videos (use external hosting)
+*.mp4
+*.avi
+*.mov

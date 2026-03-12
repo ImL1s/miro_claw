@@ -1,6 +1,6 @@
 # CLAUDE.md
 
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+This file provides guidance to Claude Code (claude.ai/code) when working with code in this directory.
 
 ## What This Is
 
@@ -14,11 +14,6 @@ npx tsc --noEmit                           # Type-check only
 npx tsc --watch                            # Dev mode
 node --test dist/src/__tests__/*.test.js   # Run all tests
 node --test dist/src/__tests__/run-manager.test.js  # Single test file
-```
-
-After building, deploy to OpenClaw:
-```bash
-cp -r dist/* ~/.openclaw/extensions/mirofish/dist/
 ```
 
 ## Architecture
@@ -35,12 +30,8 @@ All paths funnel through **RunManager** (`src/run-manager.ts`), which manages CL
 
 ## Key Patterns
 
-- **OpenClaw tool execute signature**: `execute(toolCallId: string, params: object)` — NOT `execute(params)`. The first arg is always the tool call ID.
-- **OpenClaw hook registration**: Third arg required: `api.registerHook(events, handler, { name: "..." })`
-- **OpenClaw HTTP route auth**: Must include `auth: "gateway"` or `auth: "plugin"` in route params.
 - **NDJSON protocol**: CLI spawned with `--json-stream` flag. Events parsed from stdout line-by-line. Key events: `run:start`, `step:start/progress/done`, `run:done` (with `reportId`, `simId`), `run:error`, `run:cancelled`.
 - **Dual-key RunManager**: Both temp `run-{timestamp}` and real UUID from CLI point to the same `ActiveRun` object in the Map. Deduplication in list endpoints uses `Set` with object identity.
-- **Discord webhook**: Read from `MIROFISH_DISCORD_WEBHOOK` env var (not plugin config — OpenClaw validates config fields strictly).
 
 ## Environment
 
@@ -52,10 +43,6 @@ All paths funnel through **RunManager** (`src/run-manager.ts`), which manages CL
 ## Testing Against OpenClaw Gateway
 
 ```bash
-# Start gateway (needs Node 22+)
-nvm use 22
-MIROFISH_DISCORD_WEBHOOK="..." openclaw gateway
-
 # RPC calls
 openclaw gateway call mirofish.predict --params '{"topic": "..."}'
 openclaw gateway call mirofish.status --params '{"runId": "run-xxx"}'
@@ -63,7 +50,5 @@ openclaw gateway call mirofish.cancel --params '{"runId": "run-xxx"}'
 openclaw gateway call mirofish.list --params '{}'
 
 # Agent tool test
-openclaw agent --agent main -m "檢查 mirofish 推演狀態"
+openclaw agent --agent main -m "Check mirofish prediction status"
 ```
-
-Gateway logs: `/private/tmp/openclaw-gateway.log`

@@ -146,7 +146,7 @@ describe('parseNDJSON', () => {
 
 **Step 2: Run test to verify it fails**
 
-Run: `cd /Users/iml1s/Documents/mine/miro_claw && node --test cli/test/json-stream.test.js`
+Run: `node --test cli/test/json-stream.test.js`
 Expected: FAIL with "Cannot find module '../lib/json-stream.js'"
 
 **Step 3: Write minimal implementation**
@@ -253,7 +253,7 @@ module.exports = { JsonStreamEmitter, parseNDJSON, STEP_NAMES };
 
 **Step 4: Run test to verify it passes**
 
-Run: `cd /Users/iml1s/Documents/mine/miro_claw && node --test cli/test/json-stream.test.js`
+Run: `node --test cli/test/json-stream.test.js`
 Expected: All 5 tests PASS
 
 **Step 5: Commit**
@@ -300,7 +300,7 @@ describe('predict --json-stream integration', () => {
 
 **Step 2: Run test to verify it fails**
 
-Run: `cd /Users/iml1s/Documents/mine/miro_claw && node --test cli/test/predict-json-stream.test.js`
+Run: `node --test cli/test/predict-json-stream.test.js`
 Expected: FAIL with "wrapWithJsonStream is not a function"
 
 **Step 3: Modify `cli/lib/predict.js`**
@@ -394,7 +394,7 @@ Also add to the `usage()` help text:
 
 **Step 5: Run test to verify it passes**
 
-Run: `cd /Users/iml1s/Documents/mine/miro_claw && node --test cli/test/predict-json-stream.test.js`
+Run: `node --test cli/test/predict-json-stream.test.js`
 Expected: PASS
 
 **Step 6: Commit**
@@ -546,7 +546,7 @@ export default plugin;
 
 **Step 4: Verify TypeScript compiles**
 
-Run: `cd /Users/iml1s/Documents/mine/miro_claw/extensions/mirofish && npm install && npx tsc --noEmit`
+Run: `cd extensions/mirofish && npm install && npx tsc --noEmit`
 Expected: Errors for missing `src/*.ts` files (expected — we create them in subsequent tasks)
 
 **Step 5: Commit**
@@ -649,7 +649,7 @@ describe("RunManager", () => {
 
 **Step 2: Run test to verify it fails**
 
-Run: `cd /Users/iml1s/Documents/mine/miro_claw/extensions/mirofish && npx tsx --test src/__tests__/run-manager.test.ts`
+Run: `cd extensions/mirofish && npx tsx --test src/__tests__/run-manager.test.ts`
 Expected: FAIL with "Cannot find module '../run-manager.js'"
 
 **Step 3: Write implementation**
@@ -896,7 +896,7 @@ export function createRunManager(config: RunManagerConfig): RunManager {
 
 **Step 4: Run test to verify it passes**
 
-Run: `cd /Users/iml1s/Documents/mine/miro_claw/extensions/mirofish && npx tsx --test src/__tests__/run-manager.test.ts`
+Run: `cd extensions/mirofish && npx tsx --test src/__tests__/run-manager.test.ts`
 Expected: All 4 tests PASS
 
 **Step 5: Commit**
@@ -1629,7 +1629,7 @@ describe("MiroFish Extension Integration", () => {
 
 **Step 2: Run test**
 
-Run: `cd /Users/iml1s/Documents/mine/miro_claw/extensions/mirofish && npx tsx --test src/__tests__/integration.test.ts`
+Run: `cd extensions/mirofish && npx tsx --test src/__tests__/integration.test.ts`
 Expected: All 2 tests PASS
 
 **Step 3: Commit**
@@ -1746,7 +1746,7 @@ module.exports = { predict, formatReport, wrapWithJsonStream: (fn) => new (requi
 
 **Step 2: Manual test**
 
-Run: `cd /Users/iml1s/Documents/mine/miro_claw && node cli/bin/mirofish.js predict "測試" --json-stream --rounds=2 2>/dev/null | head -5`
+Run: `node cli/bin/mirofish.js predict "測試" --json-stream --rounds=2 2>/dev/null | head -5`
 Expected: NDJSON lines starting with `{"event":"run:start",...}`
 
 **Step 3: Commit**

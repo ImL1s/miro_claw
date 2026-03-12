@@ -42,7 +42,7 @@ The generated `channel_pb2.py` was built with protobuf 6.31.1 but the runtime is
 **Step 1: Check installed protoc/grpcio-tools versions**
 
 ```bash
-cd /Users/iml1s/Documents/mine/miro_claw/oasis-distributed
+cd oasis-distributed
 python3.11 -c "import google.protobuf; print(google.protobuf.__version__)"
 python3.11 -c "import grpc; print(grpc.__version__)"
 ```
@@ -50,7 +50,7 @@ python3.11 -c "import grpc; print(grpc.__version__)"
 **Step 2: Regenerate stubs**
 
 ```bash
-cd /Users/iml1s/Documents/mine/miro_claw/oasis-distributed
+cd oasis-distributed
 python3.11 -m grpc_tools.protoc \
   -I oasis/network/proto \
   --python_out=oasis/network/proto \
@@ -70,7 +70,7 @@ sed -i '' 's/^import channel_pb2/from . import channel_pb2/' \
 **Step 4: Run network tests to verify fix**
 
 ```bash
-cd /Users/iml1s/Documents/mine/miro_claw/oasis-distributed
+cd oasis-distributed
 python3.11 -m pytest tests/test_network_channel.py -v
 ```
 
@@ -419,7 +419,7 @@ git commit -m "test(e2e): add Docker Compose smoke test for distributed simulati
 **Step 1: Run all unit tests**
 
 ```bash
-cd /Users/iml1s/Documents/mine/miro_claw/oasis-distributed
+cd oasis-distributed
 python3.11 -m pytest tests/ -v --tb=short
 ```
 
@@ -428,7 +428,6 @@ Expected: All tests pass (80+ unit + 2 new)
 **Step 2: Run CLI tests**
 
 ```bash
-cd /Users/iml1s/Documents/mine/miro_claw
 node --test cli/test/distributed.test.js cli/test/distributed-peers.test.js cli/test/distributed-llm.test.js
 ```
 
@@ -437,7 +436,7 @@ Expected: 23/23 pass
 **Step 3: Run backend tests**
 
 ```bash
-cd /Users/iml1s/Documents/mine/miro_claw/MiroFish/backend
+cd MiroFish/backend
 uv run pytest tests/test_distributed_runner.py tests/test_distributed_api.py tests/test_distributed_native.py -v
 ```
 

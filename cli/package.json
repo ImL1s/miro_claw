@@ -17,12 +17,12 @@
         "prediction",
         "openclaw"
     ],
-    "license": "MIT",
+    "license": "AGPL-3.0-only",
     "engines": {
         "node": ">=18.0.0"
     },
     "repository": {
         "type": "git",
-        "url": "https://github.com/666ghj/MiroFish"
+        "url": "https://github.com/ImL1s/miro_claw"
     }
 }

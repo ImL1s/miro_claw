@@ -10,20 +10,6 @@ MiroClaw integrates [MiroFish](https://github.com/666ghj/MiroFish) (55 AI Agent 
 
 **Distributed**: 55 agents can be split across multiple machines via `oasis-distributed/` (gRPC + Docker).
 
-## User-Facing Usage
-
-End users install the MiroFish skill into OpenClaw once — all capabilities activate automatically:
-
-| Capability | How the user triggers it |
-|:-----------|:------------------------|
-| **Prediction** | Tell the Agent: "幫我預測比特幣走勢" → auto-calls `mirofish_predict` |
-| **Distributed** | Tell the Agent: "用分散式模擬預測 ETH 走勢，3 個 worker" → auto-calls `mirofish_predict({ distributed: true, workers: 3 })` |
-| **Status check** | "那個預測跑到哪了？" → calls `mirofish_status` |
-| **Gateway RPC** | `openclaw gateway call mirofish.predict --params '{"topic": "...", "distributed": true, "workers": 3}' ` |
-| **CLI direct** | `mirofish predict "Topic" --distributed --workers=3` (for developers/advanced users) |
-
-The extension auto-registers: 2 agent tools, 4 gateway RPCs, SSE progress push, Canvas visualization, message hooks, and P2P peer discovery. **Users don't need to know about Docker, gRPC, or Coordinators.**
-
 ## Development Commands
 
 ### CLI (Node.js, zero runtime deps)
@@ -135,21 +121,12 @@ Splits 55 OASIS agents across multiple machines. Coordinator keeps Platform (SQL
 ### NDJSON Event Protocol
 Events: `run:start`, `step:start`, `step:progress`, `step:done`, `run:done` (carries `reportId`, `simId`), `run:error`, `run:cancelled`. Each has `ts`, `runId`.
 
-## Critical API Patterns (OpenClaw Extension)
-
-These patterns are specific to OpenClaw and not obvious from types:
-
-- **Tool execute signature**: `execute(toolCallId: string, params: object)` — first arg is always the tool call ID, NOT just params
-- **Hook registration**: Third arg required: `api.registerHook(events, handler, { name: "..." })`
-- **HTTP route auth**: Must include `auth: "gateway"` or `auth: "plugin"` in route params
-- **Discord webhook**: Read from `MIROFISH_DISCORD_WEBHOOK` env var (not plugin config — OpenClaw validates config fields strictly)
-
 ## Environment Variables
 
 | Variable | Used By | Description |
 |:---|:---|:---|
 | `LLM_API_KEY` | Backend | Any OpenAI-format API key |
-| `LLM_BASE_URL` | Backend | LLM endpoint (Docker: `host.docker.internal:1234/v1`, native: auto-rewritten to `localhost`) |
+| `LLM_BASE_URL` | Backend | LLM endpoint URL |
 | `LLM_MODEL_NAME` | Backend | Model name for inference |
 | `ZEP_API_KEY` | Backend | Zep Cloud GraphRAG key |
 | `MIROFISH_URL` | CLI + Extension | Backend URL (default: `http://localhost:5001`) |
