@@ -57,22 +57,36 @@ MiroClaw 自動完成：啟動後端 → 建立知識圖譜 → 生成 55 個 Ag
 - **LLM API Key**（OpenAI 格式，支援任何相容 API，建議 >= 14B 參數模型）
 - **[Zep Cloud](https://www.getzep.com/) API Key**（GraphRAG 用，免費 tier 即可）
 
-### 安裝（一行搞定）
+### 安裝
+
+**方法 1：在聊天中貼上連結（最簡單）**
+
+在 OpenClaw 聊天中直接貼上這個連結，Agent 會自動完成安裝：
+
+```
+https://github.com/ImL1s/miro_claw
+```
+
+**方法 2：CLI 一行安裝**
 
 ```bash
 openclaw skills install mirofish-predict
 ```
 
-安裝後設定 API Key：
+### 設定 API Key
+
+安裝完成後，在 OpenClaw 聊天中直接告訴 Agent 你的 Key：
+
+```
+你：幫我設定 MiroFish，LLM API Key 是 sk-xxx，Base URL 是 http://my-server:1234/v1，Zep Key 是 z_xxx
+```
+
+或手動編輯 `~/.mirofish/.env`：
 
 ```bash
-# 編輯 ~/.mirofish/.env，填入以下三個 Key：
 LLM_API_KEY=your-llm-api-key
 LLM_BASE_URL=http://your-llm-server:1234/v1
 ZEP_API_KEY=your-zep-cloud-key
-
-# 重啟 Gateway
-openclaw gateway restart
 ```
 
 > **Apple Silicon 用戶**：目前無 ARM64 Docker image，CLI 會自動切換到原生模式。

@@ -57,22 +57,36 @@ MiroClaw automatically: starts the backend → builds a knowledge graph → spaw
 - **LLM API Key** (OpenAI format, any compatible API, recommended >= 14B parameter model)
 - **[Zep Cloud](https://www.getzep.com/) API Key** (for GraphRAG, free tier works)
 
-### Installation (One Command)
+### Installation
+
+**Method 1: Paste the link in chat (easiest)**
+
+Paste this link in your OpenClaw chat — the Agent will auto-install:
+
+```
+https://github.com/ImL1s/miro_claw
+```
+
+**Method 2: CLI one-liner**
 
 ```bash
 openclaw skills install mirofish-predict
 ```
 
-Then set up your API keys:
+### Set Up API Keys
+
+After installation, just tell the Agent your keys in chat:
+
+```
+You: Set up MiroFish with LLM API Key sk-xxx, Base URL http://my-server:1234/v1, Zep Key z_xxx
+```
+
+Or manually edit `~/.mirofish/.env`:
 
 ```bash
-# Edit ~/.mirofish/.env with these three keys:
 LLM_API_KEY=your-llm-api-key
 LLM_BASE_URL=http://your-llm-server:1234/v1
 ZEP_API_KEY=your-zep-cloud-key
-
-# Restart Gateway
-openclaw gateway restart
 ```
 
 > **Apple Silicon users**: No ARM64 Docker image available. CLI auto-falls back to native mode.
