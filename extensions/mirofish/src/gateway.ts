@@ -360,6 +360,7 @@ export function registerGatewayMethods(
           return;
         }
         respond(true, {
+          simId,
           reportId: result.data.report_id,
           content: result.data.markdown_content,
         });
@@ -370,6 +371,7 @@ export function registerGatewayMethods(
           return;
         }
         respond(true, {
+          simId,
           reportId: summary.reportId,
           content: summary.summary,
         });

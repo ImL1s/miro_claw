@@ -297,7 +297,9 @@ export function createMirofishTools(
       description:
         "Interview a specific AI agent from a MiroFish simulation. " +
         "Each simulation has ~55 agents with distinct personas. " +
-        "Use this to ask a particular agent about their reasoning and opinions.",
+        "IMPORTANT: Only works while simulation is still RUNNING. " +
+        "For completed/stopped simulations, use mirofish_chat instead — " +
+        "the Report Agent can answer questions about specific agents from the knowledge graph.",
       parameters: {
         type: "object" as const,
         properties: {
@@ -329,6 +331,7 @@ export function createMirofishTools(
             return JSON.stringify({
               status: "error",
               message: result.error || "Interview failed",
+              hint: "The simulation may have stopped. Use mirofish_chat with the same simId to ask the Report Agent about this agent instead.",
             });
           }
 
@@ -399,6 +402,7 @@ export function createMirofishTools(
             }
             return JSON.stringify({
               status: "ok",
+              simId: resolvedSimId,
               reportId: result.data.report_id,
               content: result.data.markdown_content,
             });
@@ -415,6 +419,7 @@ export function createMirofishTools(
 
           return JSON.stringify({
             status: "ok",
+            simId: resolvedSimId,
             reportId: summary.reportId,
             content: summary.summary,
           });
