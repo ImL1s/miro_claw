@@ -382,6 +382,12 @@ miro_claw/
 | Phase 6 | Cosmos SDK AppChain：存證 + 信譽 MVP | 📋 規劃中 |
 | Phase 7 | 事後驗證 + 排行榜 + 訂閱經濟 | 📋 規劃中 |
 
+---
+
+## 支持
+
+如果這個專案幫你省了點時間，可以[請我喝杯咖啡](https://buymeacoffee.com/iml1s)。
+
 ## License
 
 [AGPL-3.0](LICENSE)
